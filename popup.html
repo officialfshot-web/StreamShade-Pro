@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>StreamShade Pro</title>
+  <style>
+    :root {
+      --bg: #070812;
+      --bg2: #0b0d1d;
+      --card: rgba(255, 255, 255, 0.06);
+      --card2: rgba(255, 255, 255, 0.04);
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.60);
+      --muted2: rgba(255, 255, 255, 0.42);
+      --border: rgba(255, 255, 255, 0.10);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      --accent: #7c3aed;
+      --accent2: #22d3ee;
+      --good: #16a34a;
+      --bad: #ef4444;
+      --ring: 0 0 0 3px rgba(124, 58, 237, 0.35);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      width: 380px;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(1200px 600px at -10% -10%, rgba(124,58,237,0.45) 0%, transparent 55%),
+                  radial-gradient(1000px 600px at 110% 0%, rgba(34,211,238,0.28) 0%, transparent 52%),
+                  linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .header {
+      position: relative;
+      padding: 14px 16px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(124,58,237,1) 0%, rgba(34,211,238,1) 100%);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.18);
+      flex: 0 0 auto;
+    }
+
+    .brand-text { min-width: 0; }
+    .brand-name {
+      font-size: 14px;
+      font-weight: 750;
+      letter-spacing: 0.2px;
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand-sub {
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.86);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 10px 12px;
+    }
+
+    .tab {
+      padding: 10px 10px;
+      font-size: 12px;
+      font-weight: 650;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.70);
+      border-radius: 12px;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      user-select: none;
+    }
+    .tab:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); }
+    .tab.active {
+      color: rgba(255,255,255,0.92);
+      border-color: rgba(124,58,237,0.50);
+      background: linear-gradient(135deg, rgba(124,58,237,0.28) 0%, rgba(34,211,238,0.18) 100%);
+      box-shadow: 0 10px 22px rgba(124,58,237,0.18);
+    }
+
+    .tab-content { display: none; padding: 0 12px 12px; }
+    .tab-content.active { display: block; }
+
+    .section {
+      background: linear-gradient(180deg, var(--card) 0%, var(--card2) 100%);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 10px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+      letter-spacing: 0.9px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 0 12px;
+      margin-top: 10px;
+    }
+
+    .action-btn {
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(135deg, rgba(124,58,237,0.95) 0%, rgba(34,211,238,0.85) 100%);
+      color: rgba(255,255,255,0.95);
+      padding: 12px 10px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: 0.25px;
+      transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+      box-shadow: 0 12px 26px rgba(0,0,0,0.35);
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+    }
+    .action-btn:hover { transform: translateY(-2px); filter: saturate(1.06); }
+    .action-btn:active { transform: translateY(0px) scale(0.98); }
+    .action-btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.2); }
+    .action-btn.is-success { box-shadow: 0 0 0 3px rgba(22,163,74,0.35), 0 16px 40px rgba(22,163,74,0.14); }
+
+    .action-btn.intro { background: linear-gradient(135deg, rgba(236,72,153,0.92) 0%, rgba(124,58,237,0.92) 100%); }
+    .action-btn.full { background: linear-gradient(135deg, rgba(124,58,237,0.95) 0%, rgba(59,130,246,0.85) 100%); }
+    .action-btn.outro { background: linear-gradient(135deg, rgba(34,211,238,0.88) 0%, rgba(22,163,74,0.76) 100%); }
+
+    .btn-ico {
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      opacity: 0.95;
+    }
+
+    .btn-ico svg { width: 18px; height: 18px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .btn-label { line-height: 1; }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      gap: 12px;
+    }
+    .control-row:last-child { border-bottom: none; }
+
+    .control-label { font-size: 13px; font-weight: 650; }
+    .control-sublabel { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+
+    .control-input { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .unit { font-size: 11px; color: var(--muted2); }
+
+    input[type="number"],
+    input[type="text"] {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.92);
+      border-radius: 12px;
+      font-size: 13px;
+      outline: none;
+      transition: box-shadow 120ms ease, border-color 120ms ease;
+    }
+    input[type="number"] { width: 68px; padding: 8px 8px; text-align: center; }
+    input[type="text"] { flex: 1; padding: 10px 12px; }
+    input[type="number"]:focus, input[type="text"]:focus { border-color: rgba(124,58,237,0.55); box-shadow: var(--ring); }
+
+    .input-group { display: flex; gap: 10px; margin-top: 10px; }
+
+    button {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.90);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 650;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      white-space: nowrap;
+    }
+    button:hover { transform: translateY(-1px); background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+    button:active { transform: translateY(0px) scale(0.99); }
+    button.small { padding: 8px 12px; font-size: 11px; border-radius: 12px; }
+    button.secondary { background: rgba(0,0,0,0.24); }
+    button.secondary:hover { background: rgba(0,0,0,0.35); }
+
+    .toggle { position: relative; width: 46px; height: 26px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: 0.2s;
+      border-radius: 999px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 2.5px;
+      background: rgba(255,255,255,0.92);
+      transition: 0.2s;
+      border-radius: 999px;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+    }
+    input:checked + .slider {
+      background: linear-gradient(135deg, rgba(124,58,237,0.9) 0%, rgba(34,211,238,0.7) 100%);
+      border-color: rgba(124,58,237,0.55);
+    }
+    input:checked + .slider:before { transform: translateX(19px); }
+
+    .speed-presets { display: flex; gap: 8px; margin-top: 10px; }
+    .speed-btn {
+      flex: 1;
+      background: rgba(0,0,0,0.24);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 10px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.88);
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+    .speed-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); }
+    .speed-btn.active {
+      background: linear-gradient(135deg, rgba(124,58,237,0.35) 0%, rgba(34,211,238,0.22) 100%);
+      border-color: rgba(124,58,237,0.55);
+    }
+
+    .segments-list {
+      max-height: 130px;
+      overflow-y: auto;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .segment-item {
+      padding: 10px 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.10);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .segment-name { font-size: 12px; font-weight: 650; color: rgba(255,255,255,0.88); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .segment-time { font-size: 11px; color: var(--muted2); flex: 0 0 auto; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-card {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 14px;
+      border-radius: 16px;
+      text-align: left;
+      box-shadow: 0 14px 26px rgba(0,0,0,0.35);
+    }
+    .stat-value { font-size: 22px; font-weight: 800; color: rgba(255,255,255,0.92); letter-spacing: -0.3px; }
+    .stat-label { font-size: 10px; color: var(--muted2); text-transform: uppercase; margin-top: 6px; letter-spacing: 0.9px; }
+
+    .shortcuts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      padding: 9px 10px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      color: rgba(255,255,255,0.86);
+    }
+    kbd {
+      background: rgba(255,255,255,0.06);
+      padding: 5px 7px;
+      border-radius: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      min-width: 54px;
+      text-align: center;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .footer {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .footer button { padding: 10px 12px; border-radius: 14px; font-size: 11px; }
+    .footer button.export {
+      background: linear-gradient(135deg, rgba(22,163,74,0.55) 0%, rgba(34,211,238,0.18) 100%);
+      border-color: rgba(22,163,74,0.45);
+    }
+
+    .status-bar {
+      margin: 0 12px 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.10);
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25);
+    }
+    .status-indicator.active { background: var(--good); box-shadow: 0 0 0 3px rgba(22,163,74,0.25), 0 0 18px rgba(22,163,74,0.35); }
+    .status-indicator.error { background: var(--bad); box-shadow: 0 0 0 3px rgba(239,68,68,0.22), 0 0 18px rgba(239,68,68,0.32); }
+
+    .empty-state { text-align: center; padding: 16px 10px; color: var(--muted2); font-size: 12px; }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tab, .action-btn, button, .speed-btn { transition: none; }
+    }
+
+    /* Range sliders for the Audio tab */
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px;
+      background: rgba(255,255,255,0.10);
+      border-radius: 999px; outline: none;
+      box-shadow: inset 0 1px 0 rgba(0,0,0,0.25);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #22d3ee);
+      cursor: pointer; border: 2px solid rgba(255,255,255,0.18);
+      box-shadow: 0 4px 10px rgba(124,58,237,0.35);
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.08); }
+    input[type="range"]:focus { box-shadow: inset 0 1px 0 rgba(0,0,0,0.25), 0 0 0 3px rgba(124,58,237,0.25); }
+
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    .slider-val { min-width: 56px; text-align: right; font-weight: 700; color: rgba(255,255,255,0.85); font-variant-numeric: tabular-nums; font-size: 12px; }
+    .eq-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M15 9l-6 6" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">StreamShade Pro</div>
+        <div class="brand-sub">LookMovie Enhancer</div>
+      </div>
+    </div>
+    <div class="header-stats"><div class="pill" id="timeSaved">0m saved</div></div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab active" data-tab="main">Main</button>
+    <button class="tab" data-tab="audio">Audio</button>
+    <button class="tab" data-tab="advanced">Advanced</button>
+    <button class="tab" data-tab="stats">Stats</button>
+  </div>
+  
+  <div id="main" class="tab-content active">
+    <div class="quick-actions">
+      <button id="skipIntroNowBtn" class="action-btn intro">
+        <span class="btn-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M21 12H8"/><path d="M12 8l-4 4 4 4"/><path d="M6 7v10"/></svg>
+        </span>
+        <span class="btn-label">Skip Intro</span>
+      </button>
+      <button id="fullscreenBtn" class="action-btn full">
+        <span class="btn-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M8 3H3v5"/><path d="M3 3l7 7"/><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M8 21H3v-5"/><path d="M3 21l7-7"/><path d="M16 21h5v-5"/><path d="M21 21l-7-7"/></svg>
+        </span>
+        <span class="btn-label">Fullscreen</span>
+      </button>
+      <button id="skipOutroNowBtn" class="action-btn outro">
+        <span class="btn-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 12h13"/><path d="M12 8l4 4-4 4"/><path d="M18 7v10"/></svg>
+        </span>
+        <span class="btn-label">Skip Outro</span>
+      </button>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">Skip Configuration</div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Skip Intro</div>
+          <div class="control-sublabel">Auto-skip first part</div>
+        </div>
+        <div class="control-input">
+          <input type="number" id="introSeconds" min="0" max="600" value="40">
+          <span class="unit">sec</span>
+          <label class="toggle"><input type="checkbox" id="skipIntro" checked><span class="slider"></span></label>
+        </div>
+      </div>
+      
+      <div class="control-row">
+        <div>
+          <div class="control-label">Auto Fullscreen</div>
+          <div class="control-sublabel">After playback starts</div>
+        </div>
+        <div class="control-input">
+          <input type="number" id="fullscreenSeconds" min="0" max="600" value="35">
+          <span class="unit">sec</span>
+          <label class="toggle"><input type="checkbox" id="autoFullscreen" checked><span class="slider"></span></label>
+        </div>
+      </div>
+      
+      <div class="control-row">
+        <div>
+          <div class="control-label">Auto-skip Outro</div>
+          <div class="control-sublabel">Jump to next episode</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="autoSkip" checked><span class="slider"></span></label>
+      </div>
+    </div>
+    
+    <div class="section" id="showSection">
+      <div class="section-title">
+        <span>Current Show</span>
+        <span class="pill" id="showIdBadge" style="font-size:10px;">no show</span>
+      </div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Intro length (this show)</div>
+          <div class="control-sublabel">Overrides default. Auto-learns from your skips.</div>
+        </div>
+        <div class="control-input">
+          <input type="number" id="showIntroSeconds" min="0" max="600" placeholder="—" style="width:78px;">
+          <span class="unit">sec</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Auto-learn from clicks</div>
+          <div class="control-sublabel">Save the moment you press Skip Intro</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="autoLearnIntro" checked><span class="slider"></span></label>
+      </div>
+      <button id="clearShowIntroBtn" class="secondary small" style="width:100%; margin-top:8px;">Reset this show to default</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Outro Time</div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Auto-detect outro</div>
+          <div class="control-sublabel">Skip the last 1:30 of episodes / last 5% of movies</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="autoDetectOutro" checked><span class="slider"></span></label>
+      </div>
+      <div class="input-group">
+        <input type="text" id="outroTime" placeholder="Manual override: MM:SS or 95%">
+        <button id="setNowBtn" class="small">Set Now</button>
+      </div>
+      <button id="autoDetectBtn" class="secondary small" style="width: 100%; margin-top: 8px;">Use current frame as outro</button>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">Playback Speed</div>
+      <div class="speed-presets">
+        <button class="speed-btn" data-speed="0.5">0.5x</button>
+        <button class="speed-btn active" data-speed="1">1x</button>
+        <button class="speed-btn" data-speed="1.5">1.5x</button>
+        <button class="speed-btn" data-speed="2">2x</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="advanced" class="tab-content">
+    <div class="section">
+      <div class="section-title">StreamShade Features</div>
+      <div class="control-row">
+        <div><div class="control-label">Close Timer Ads</div><div class="control-sublabel">Auto-click "Go to Show"</div></div>
+        <label class="toggle"><input type="checkbox" id="autoCloseEnabled" checked><span class="slider"></span></label>
+      </div>
+      <div class="control-row">
+        <div><div class="control-label">Continue Watching</div><div class="control-sublabel">Auto-click when paused long</div></div>
+        <label class="toggle"><input type="checkbox" id="continueWatchingEnabled" checked><span class="slider"></span></label>
+      </div>
+      <div class="control-row">
+        <div><div class="control-label">Notifications</div><div class="control-sublabel">Show skip alerts</div></div>
+        <label class="toggle"><input type="checkbox" id="showNotifications" checked><span class="slider"></span></label>
+      </div>
+      <div class="control-row">
+        <div><div class="control-label">Fast Startup</div><div class="control-sublabel">Skip the 10s pre-init countdown</div></div>
+        <label class="toggle"><input type="checkbox" id="fastStartup" checked><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bedtime Mode</div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Enable bedtime</div>
+          <div class="control-sublabel">Switch this tab to YouTube at set time</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="bedtimeEnabled"><span class="slider"></span></label>
+      </div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Time</div>
+          <div class="control-sublabel">24-hour format</div>
+        </div>
+        <input type="time" id="bedtimeTime" value="23:00" style="background:rgba(0,0,0,0.22); color:rgba(255,255,255,0.92); border:1px solid rgba(255,255,255,0.10); border-radius:12px; padding:8px 10px; font-family:inherit;">
+      </div>
+      <div style="margin-top:10px;">
+        <div class="control-label" style="margin-bottom:6px;">Redirect URL</div>
+        <input type="text" id="bedtimeUrl" placeholder="https://www.youtube.com/...">
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">Custom Skip Segments</div>
+      <div id="segmentsList" class="segments-list">
+        <div class="empty-state">No custom segments. Press Shift+S while watching to add one.</div>
+      </div>
+      <button id="clearSegmentsBtn" class="secondary small" style="width: 100%; margin-top: 8px;">Clear All Segments</button>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">Keyboard Shortcuts</div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-item"><kbd>Shift I</kbd> Skip intro</div>
+        <div class="shortcut-item"><kbd>Shift O</kbd> Skip outro</div>
+        <div class="shortcut-item"><kbd>Shift F</kbd> Fullscreen</div>
+        <div class="shortcut-item"><kbd>Shift S</kbd> Add segment</div>
+        <div class="shortcut-item"><kbd>< ></kbd> Speed</div>
+        <div class="shortcut-item"><kbd>↑↓</kbd> Volume</div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="audio" class="tab-content">
+    <div class="section">
+      <div class="section-title">Audio Enhancements</div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Enable</div>
+          <div class="control-sublabel">Routes audio through Web Audio. Refresh page if audio stops.</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="audioEnhancements"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Volume</div>
+      <div class="slider-row">
+        <input type="range" id="volumeBoost" min="0" max="400" step="5" value="100">
+        <span class="slider-val" id="volumeBoostValue">100%</span>
+      </div>
+      <div class="control-sublabel" style="margin-top:8px;">0–100% works any time. Above 100% requires Enhancements.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">EQ Preset</div>
+      <div class="eq-presets">
+        <button class="speed-btn eq-btn" data-eq="flat">Flat</button>
+        <button class="speed-btn eq-btn" data-eq="voice" title="Boost dialogue clarity">Voice</button>
+        <button class="speed-btn eq-btn" data-eq="bass" title="Boost low end">Bass</button>
+        <button class="speed-btn eq-btn" data-eq="cinema" title="Movie-style V-curve">Cinema</button>
+        <button class="speed-btn eq-btn" data-eq="music" title="Balanced enhancement">Music</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Balance &amp; Dynamics</div>
+      <div style="margin-bottom:14px;">
+        <div class="control-label" style="margin-bottom:6px; display:flex; justify-content:space-between;">
+          <span>Stereo Balance</span><span class="slider-val" id="balanceValue">center</span>
+        </div>
+        <input type="range" id="balance" min="-100" max="100" step="5" value="0">
+      </div>
+      <div class="control-row">
+        <div>
+          <div class="control-label">Normalize Loudness</div>
+          <div class="control-sublabel">Compress loud effects, lift quiet dialog</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="compressor"><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+  
+  <div id="stats" class="tab-content">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statTimeSaved">0</div>
+        <div class="stat-label">Minutes Saved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statIntros">0</div>
+        <div class="stat-label">Intros Skipped</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statOutros">0</div>
+        <div class="stat-label">Outros Skipped</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statSegments">0</div>
+        <div class="stat-label">Segments</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <button id="exportBtn" class="export">Export</button>
+    <button id="importBtn" class="secondary">Import</button>
+    <button id="resetBtn" class="secondary">Reset</button>
+  </div>
+  
+  <div class="status-bar">
+    <div class="status-indicator" id="statusIndicator"></div>
+    <span id="statusText">Initializing...</span>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
