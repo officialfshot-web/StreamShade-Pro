@@ -226,7 +226,7 @@ All bugs identified and fixed during the review sessions.
 - **Severity**: High
 - **File**: `content.js`, `popup.html`, `popup.js`
 - **Problem**: The hidden `universalAutoClick` and `popupAutoClick` features were enabled by default and had no UI controls. They clicked any element matching broad selectors like `*[style*="z-index"]` and `*[style*="position: fixed"]`, which caused LookMovie ad popups to open many new tabs when visiting the site.
-- **Fix**: Disabled both aggressive auto-clickers by default, added explicit toggles in the Advanced tab with warnings, and force-disabled them for all existing users on the next load. The original gentle popup closer and continue-watching auto-click remain enabled.
+- **Fix**: Completely removed the `universalAutoClick` and `popupAutoClick` systems and their associated UI controls. The original gentle popup closer and continue-watching auto-click remain enabled.
 
 ---
 

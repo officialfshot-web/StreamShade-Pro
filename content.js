@@ -49,33 +49,6 @@
     // Audio fingerprinting for intro detection
     audioFingerprintIntro: false,
 
-    // Universal Auto-Click (disabled by default - too aggressive on ad sites)
-    universalAutoClick: false,
-    autoClickDelay: 500,
-
-    // Generic Popup Auto-Clicker (disabled by default - can trigger ad popups)
-    popupAutoClick: false,
-    popupClickDelay: 300,
-    popupSelectors: [
-      // Common popup/dialog patterns
-      '[role="dialog"]',
-      '[role="alertdialog"]',
-      '[role="modal"]',
-      '.modal',
-      '.popup',
-      '.dialog',
-      '.overlay',
-      '.lightbox',
-      // High z-index elements (likely popups)
-      '*[style*="z-index"]',
-      // Fixed positioned elements (likely overlays)
-      '*[style*="position: fixed"]',
-      // Elements with backdrop
-      '.backdrop',
-      '.modal-backdrop',
-      '.overlay-backdrop'
-    ],
-
     // Per-show settings
     perShowSettings: {},
     customSegments: []
@@ -161,12 +134,6 @@
       if (result.streamshade_stats) {
         state.stats = { ...state.stats, ...result.streamshade_stats };
       }
-
-      // Force-disable the aggressive auto-clickers that were mistakenly enabled
-      // by default in earlier builds and could open ad popups/tabs.
-      settings.universalAutoClick = false;
-      settings.popupAutoClick = false;
-      saveSettings();
       
       currentShowId = extractShowId();
       if (currentShowId && settings.perShowSettings[currentShowId]) {
@@ -534,279 +501,6 @@
     });
   }
 
-  // ===== GENERIC POPUP AUTO-CLICKER =====
-  // Detects and clicks any popup/dialog/window that appears on screen
-  
-  function isPopupElement(element) {
-    if (!element || element.nodeType !== 1) return false;
-    
-    // Check if element matches popup selectors
-    for (const selector of settings.popupSelectors) {
-      try {
-        if (element.matches && element.matches(selector)) return true;
-      } catch (e) {
-        // Invalid selector, skip
-      }
-    }
-    
-    // Check for high z-index (likely popup)
-    const style = window.getComputedStyle(element);
-    const zIndex = parseInt(style.zIndex);
-    if (zIndex > 1000) return true;
-    
-    // Check for fixed positioning with overlay-like properties
-    if (style.position === 'fixed' || style.position === 'absolute') {
-      const rect = element.getBoundingClientRect();
-      // If it covers a significant portion of the screen
-      const coverage = (rect.width * rect.height) / (window.innerWidth * window.innerHeight);
-      if (coverage > 0.3) return true;
-    }
-    
-    // Check for backdrop-like styling
-    if (style.position === 'fixed' && 
-        (style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
-         style.backgroundColor === 'rgba(0, 0, 0, 0.3)' ||
-         style.backgroundColor === 'rgba(0, 0, 0, 0.7)')) {
-      return true;
-    }
-    
-    // Check for common popup class names
-    const className = classStr(element).toLowerCase();
-    const popupKeywords = ['modal', 'popup', 'dialog', 'overlay', 'lightbox', 'alert', 'notification', 'toast'];
-    if (popupKeywords.some(keyword => className.includes(keyword))) return true;
-    
-    return false;
-  }
-
-  function findClickableInPopup(popupElement) {
-    // Look for buttons, links, or clickable elements within the popup
-    const clickableSelectors = [
-      'button',
-      'a[href]',
-      'input[type="button"]',
-      'input[type="submit"]',
-      '[role="button"]',
-      '.btn',
-      '.button',
-      '.close',
-      '.dismiss',
-      '.accept',
-      '.confirm',
-      '.ok',
-      '.yes',
-      '.continue',
-      '.proceed'
-    ];
-    
-    for (const selector of clickableSelectors) {
-      const elements = popupElement.querySelectorAll(selector);
-      if (elements.length > 0) {
-        // Return the first visible clickable element
-        for (const el of elements) {
-          const rect = el.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0 && 
-              window.getComputedStyle(el).display !== 'none') {
-            return el;
-          }
-        }
-      }
-    }
-    
-    // If no specific button found, try clicking the popup itself
-    return popupElement;
-  }
-
-  function autoClickPopup() {
-    if (!settings.popupAutoClick) return false;
-    
-    // Find all potential popup elements
-    const allElements = document.querySelectorAll('*');
-    const popups = Array.from(allElements).filter(el => isPopupElement(el));
-    
-    let clicked = false;
-    for (const popup of popups) {
-      // Skip if we recently clicked this popup
-      const popupId = popup.tagName + (popup.id || '') + (popup.className || '');
-      if (state.recentlyClickedPopups && state.recentlyClickedPopups.has(popupId)) continue;
-      
-      const clickableElement = findClickableInPopup(popup);
-      if (clickableElement) {
-        try {
-          // Ensure element is clickable
-          if (clickableElement.disabled) {
-            clickableElement.disabled = false;
-            clickableElement.removeAttribute('disabled');
-          }
-          clickableElement.style.pointerEvents = 'auto';
-          
-          // Click it
-          clickableElement.click();
-          
-          // Track clicked popup
-          if (!state.recentlyClickedPopups) state.recentlyClickedPopups = new Set();
-          state.recentlyClickedPopups.add(popupId);
-          
-          // Clean up after 5 seconds
-          setTimeout(() => {
-            if (state.recentlyClickedPopups) {
-              state.recentlyClickedPopups.delete(popupId);
-            }
-          }, 5000);
-          
-          console.log('[StreamShade] Auto-clicked popup:', clickableElement.tagName, clickableElement.textContent);
-          if (settings.showNotifications) {
-            showNotification('🎯 Auto-clicked popup', 1000);
-          }
-          
-          clicked = true;
-          break; // Only click one popup per check
-        } catch (err) {
-          console.warn('[StreamShade] Popup click failed:', err);
-        }
-      }
-    }
-    
-    return clicked;
-  }
-
-  // ===== UNIVERSAL AUTO-CLICK SYSTEM =====
-  // Automatically clicks any clickable element that appears on screen
-  
-  function isElementClickable(element) {
-    if (!element || element.nodeType !== 1) return false;
-    
-    // Skip if element is hidden or has no dimensions
-    const rect = element.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return false;
-    if (window.getComputedStyle(element).display === 'none') return false;
-    if (window.getComputedStyle(element).visibility === 'hidden') return false;
-    if (window.getComputedStyle(element).opacity === '0') return false;
-    
-    // Check for common clickable attributes and tags
-    const clickableTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'OPTION', 'LABEL'];
-    const hasClickableTag = clickableTags.includes(element.tagName);
-    
-    const hasClickableClass = /\b(button|btn|click|link|nav|menu|item|option|choice|action)\b/i.test(classStr(element));
-    const hasClickableRole = element.getAttribute('role') && /\b(button|link|menuitem|option|tab|button)\b/i.test(element.getAttribute('role'));
-    const hasOnClick = element.onclick || element.getAttribute('onclick');
-    const hasHref = element.tagName === 'A' && element.getAttribute('href');
-    const isSubmitInput = element.tagName === 'INPUT' && /\b(submit|button)\b/i.test(element.getAttribute('type'));
-    const hasTabIndex = element.getAttribute('tabindex') && parseInt(element.getAttribute('tabindex')) >= 0;
-    
-    // Check for cursor pointer
-    const hasPointerCursor = window.getComputedStyle(element).cursor === 'pointer';
-    
-    // Check if element has event listeners (simplified check)
-    const hasEventListeners = element.onclick || element.onmousedown || element.onmouseup || element.hasAttribute('data-click');
-    
-    return hasClickableTag || hasClickableClass || hasClickableRole || hasOnClick || hasHref || 
-           isSubmitInput || hasTabIndex || hasPointerCursor || hasEventListeners;
-  }
-
-  function shouldAutoClickElement(element) {
-    if (!settings.universalAutoClick || !isElementClickable(element)) return false;
-    
-    // Safety filters - avoid clicking certain elements
-    const unsafeSelectors = [
-      'script', 'style', 'meta', 'link', 'head', 'title',
-      '[type="password"]', '[type="file"]', '[type="checkbox"]', '[type="radio"]',
-      '.ads', '.advertisement', '.ad-container', '.google-ads',
-      '[data-ad]', '[data-ads]', '[id*="ad"]', '[class*="ad-"]',
-      'iframe', 'object', 'embed', 'video', 'audio'
-    ];
-    
-    for (const selector of unsafeSelectors) {
-      if (element.matches && element.matches(selector)) return false;
-      if (element.closest && element.closest(selector)) return false;
-    }
-    
-    // Skip elements that are too small (likely decorative)
-    const rect = element.getBoundingClientRect();
-    if (rect.width < 10 || rect.height < 10) return false;
-    
-    // Skip elements that are part of the video player controls (we handle those separately)
-    if (element.closest('.video-js, .jwplayer, .plyr, .vjs-control-bar, .jw-controlbar')) return false;
-    
-    // Skip elements that contain only whitespace or are empty
-    const text = element.textContent?.trim() || '';
-    if (text.length === 0 && !element.querySelector('svg, img, i, [class*="icon"]')) return false;
-    
-    return true;
-  }
-
-  function autoClickElement(element) {
-    if (!shouldAutoClickElement(element)) return false;
-    
-    try {
-      // Ensure element is enabled and clickable
-      if (element.disabled) {
-        element.disabled = false;
-        element.removeAttribute('disabled');
-      }
-      element.style.pointerEvents = 'auto';
-      
-      // Create a proper click event
-      const clickEvent = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        view: window
-      });
-      
-      element.dispatchEvent(clickEvent);
-      
-      // Log the click for debugging
-      const elementInfo = element.tagName.toLowerCase() + 
-                         (element.id ? '#' + element.id : '') + 
-                         (element.className ? '.' + element.className.split(' ').join('.') : '') +
-                         (element.textContent ? ' "' + element.textContent.trim().substring(0, 30) + '"' : '');
-      console.log('[StreamShade] Auto-clicked:', elementInfo);
-      
-      // Show notification for important clicks
-      if (settings.showNotifications && (element.tagName === 'BUTTON' || element.tagName === 'A')) {
-        showNotification('🖱 Auto-clicked element', 1000);
-      }
-      
-      return true;
-    } catch (err) {
-      console.warn('[StreamShade] Auto-click failed:', err);
-      return false;
-    }
-  }
-
-  function scanAndClickNewElements() {
-    if (!settings.universalAutoClick) return;
-    
-    // Find all clickable elements that are visible
-    const allElements = document.querySelectorAll('*');
-    const clickableElements = Array.from(allElements).filter(el => shouldAutoClickElement(el));
-    
-    // Click newly found elements (limit to avoid excessive clicking)
-    const maxClicksPerScan = 3;
-    let clickedCount = 0;
-    
-    for (const element of clickableElements) {
-      if (clickedCount >= maxClicksPerScan) break;
-      
-      // Skip if we recently clicked this element
-      const elementId = element.tagName + (element.id || '') + (element.className || '');
-      if (state.recentlyClicked && state.recentlyClicked.has(elementId)) continue;
-      
-      if (autoClickElement(element)) {
-        clickedCount++;
-        // Track recently clicked elements to avoid duplicate clicks
-        if (!state.recentlyClicked) state.recentlyClicked = new Set();
-        state.recentlyClicked.add(elementId);
-        
-        // Clean up old entries after 10 seconds
-        setTimeout(() => {
-          if (state.recentlyClicked) {
-            state.recentlyClicked.delete(elementId);
-          }
-        }, 10000);
-      }
-    }
-  }
-
   // ===== STREAMSHADE: ORIGINAL GENTLE POPUP CLOSER =====
   // Uses CSS injection to move elements off-screen (NOT display:none)
   // This prevents the site from detecting ad blockers
@@ -881,19 +575,17 @@
   }
 
   function startPopupWatcher() {
-    if (!settings.autoCloseEnabled && !settings.universalAutoClick && !settings.popupAutoClick) return;
+    if (!settings.autoCloseEnabled && !settings.continueWatchingEnabled) return;
     
     // Start immediately - don't wait for video
     closeInterval = setInterval(() => {
       hidePremiumPopup();
       clickContinueWatching();
-      scanAndClickNewElements();
-      autoClickPopup();
     }, 2000);
     
-    // MutationObserver for dynamic popups and new elements
+    // MutationObserver for dynamic popups and continue-watching buttons
     observer = new MutationObserver((mutations) => {
-      if (!settings.autoCloseEnabled && !settings.universalAutoClick && !settings.popupAutoClick) return;
+      if (!settings.autoCloseEnabled && !settings.continueWatchingEnabled) return;
       
       mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
@@ -907,31 +599,6 @@
                 clickContinueWatching();
               }, 500);
             }
-            
-            // Generic popup auto-click for new elements
-            if (settings.popupAutoClick && isPopupElement(node)) {
-              setTimeout(() => {
-                autoClickPopup();
-              }, settings.popupClickDelay || 300);
-            }
-            
-            // Universal auto-click for new elements
-            if (settings.universalAutoClick) {
-              setTimeout(() => {
-                // Check the new node itself
-                if (shouldAutoClickElement(node)) {
-                  autoClickElement(node);
-                }
-                
-                // Check all descendants of the new node
-                const clickableDescendants = node.querySelectorAll('*');
-                clickableDescendants.forEach(descendant => {
-                  if (shouldAutoClickElement(descendant)) {
-                    autoClickElement(descendant);
-                  }
-                });
-              }, settings.autoClickDelay || 500);
-            }
           }
         });
       });
@@ -942,7 +609,7 @@
       subtree: true
     });
     
-    console.log('[StreamShade] Enhanced popup watcher started with generic popup auto-click');
+    console.log('[StreamShade] Popup watcher started');
   }
 
   // ===== VIDEO DETECTION =====
@@ -2116,16 +1783,8 @@
       }, 250);
     }
 
-    // Start popup closer with universal and generic popup auto-click
+    // Start gentle popup closer
     startPopupWatcher();
-
-    // Initial scan for existing clickable elements and popups
-    if (settings.universalAutoClick || settings.popupAutoClick) {
-      setTimeout(() => {
-        scanAndClickNewElements();
-        autoClickPopup();
-      }, 1000);
-    }
 
     // Top-frame-only UI features
     startBedtimeWatcher();
