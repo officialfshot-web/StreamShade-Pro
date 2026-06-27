@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>StreamShade Pro</title>
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --surface: rgba(255,255,255,0.055);
+      --surface-elevated: rgba(255,255,255,0.095);
+      --surface-hover: rgba(255,255,255,0.12);
+      --text: #ffffff;
+      --text2: rgba(255,255,255,0.62);
+      --text3: rgba(255,255,255,0.38);
+      --sep: rgba(255,255,255,0.07);
+      --accent: #0A84FF;
+      --accent-soft: rgba(10,132,255,0.16);
+      --good: #30d158;
+      --bad: #ff453a;
+      --ring: 0 0 0 3px rgba(10,132,255,0.28);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--sep);
+    }
+
+    .logo {
+      width: 32px; height: 32px;
+      border-radius: 9px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--sep);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .logo svg { display: block; stroke: var(--accent); fill: none; }
+
+    .header-text { flex: 1; min-width: 0; }
+    .brand-name { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; line-height: 1.1; }
+    .brand-sub  { font-size: 11px; color: var(--text3); margin-top: 1px; letter-spacing: 0; }
+
+    .time-pill {
+      font-size: 11px; font-weight: 500;
+      padding: 4px 9px; border-radius: 999px;
+      background: var(--surface);
+      color: var(--text2);
+      border: 1px solid var(--sep);
+      letter-spacing: -0.1px;
+      flex-shrink: 0;
+    }
+
+    /* ─── SEGMENTED TABS ─── */
+    .tabs {
+      display: flex;
+      padding: 10px 14px;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--sep);
+      border-radius: 10px;
+      margin: 8px 14px 6px;
+    }
+    .tab {
+      flex: 1; padding: 6px 0;
+      font-size: 12px; font-weight: 500;
+      color: var(--text2);
+      text-align: center; cursor: pointer;
+      border: none; background: transparent;
+      border-radius: 7px;
+      transition: color 180ms, background 180ms;
+      user-select: none; letter-spacing: -0.1px;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: #fff; background: var(--surface-elevated); font-weight: 600; }
+
+    /* ─── SCROLL PANE ─── */
+    .pane { display: none; padding: 6px 14px 14px; overflow-y: auto; max-height: 440px; }
+    .pane.active { display: block; }
+
+    /* ─── ACTION ROW ─── */
+    .action-row {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 6px; margin-bottom: 12px;
+    }
+    .act {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 5px;
+      padding: 10px 3px 9px;
+      border-radius: 12px; border: 1px solid var(--sep);
+      cursor: pointer; color: var(--text2);
+      background: var(--surface);
+      font-size: 10px; font-weight: 500;
+      font-family: inherit; letter-spacing: -0.1px;
+      transition: transform 120ms, background 120ms, color 120ms, border-color 120ms;
+    }
+    .act:hover  { background: var(--surface-hover); color: var(--text); border-color: rgba(255,255,255,0.14); }
+    .act:active { transform: scale(0.96); }
+    .act:disabled { opacity: 0.32; cursor: not-allowed; transform: none; border-color: transparent; }
+    .act.is-success { color: var(--good); border-color: rgba(48,209,88,0.35); background: rgba(48,209,88,0.10); }
+
+    .act-ico { display: flex; }
+    .act-ico svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .act-lbl { line-height: 1; }
+
+    /* ─── iOS-STYLE LIST GROUP ─── */
+    .group {
+      background: var(--surface);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      border: 1px solid var(--sep);
+    }
+    .group:last-child { margin-bottom: 0; }
+
+    .group-header {
+      font-size: 12px; font-weight: 500;
+      color: var(--text3);
+      letter-spacing: 0.1px;
+      padding: 0 14px 6px 14px;
+      margin-top: 16px;
+    }
+    .group-header:first-child { margin-top: 0; }
+
+    .row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px; gap: 12px;
+      border-bottom: 1px solid var(--sep);
+      min-height: 48px;
+    }
+    .row:last-child { border-bottom: none; }
+
+    .row-left { flex: 1; min-width: 0; }
+    .row-label { font-size: 13px; font-weight: 400; color: var(--text); line-height: 1.2; }
+    .row-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; line-height: 1.3; }
+    .row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    .val-badge {
+      font-size: 13px; font-weight: 400; color: var(--text2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ─── TOGGLE (iOS style) ─── */
+    .tog { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track {
+      position: absolute; inset: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      transition: background 200ms;
+    }
+    .tog-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      transition: transform 200ms cubic-bezier(.4,0,.2,1);
+    }
+    .tog input:checked ~ .tog-track { background: var(--accent); }
+    .tog input:checked ~ .tog-thumb { transform: translateX(18px); }
+
+    /* ─── NUMBER INPUT ─── */
+    input[type="number"], input[type="text"], input[type="time"] {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 13px; font-family: inherit;
+      outline: none;
+      transition: border-color 140ms, box-shadow 140ms;
+    }
+    input[type="number"] { width: 54px; padding: 5px 4px; text-align: center; }
+    input[type="text"]   { flex: 1; padding: 8px 10px; }
+    input[type="time"]   { padding: 5px 8px; }
+    input:focus { border-color: var(--accent); box-shadow: var(--ring); }
+
+    .input-row { display: flex; gap: 8px; margin-top: 8px; }
+
+    /* ─── GENERIC BUTTON ─── */
+    button {
+      background: var(--surface);
+      border: 1px solid var(--sep);
+      color: var(--text); padding: 8px 14px;
+      border-radius: 10px; cursor: pointer;
+      font-size: 12px; font-weight: 500;
+      font-family: inherit;
+      transition: background 130ms, transform 100ms, color 130ms;
+      white-space: nowrap;
+    }
+    button:hover  { background: var(--surface-hover); }
+    button:active { transform: scale(0.98); }
+    button.sm  { padding: 6px 12px; font-size: 11.5px; }
+    button.ghost { background: transparent; border-color: transparent; color: var(--accent); padding: 6px 0; }
+    button.ghost:hover { background: transparent; color: #5faaff; }
+    button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    /* ─── SPEED STRIP ─── */
+    .speed-strip { display: flex; gap: 6px; }
+    .spd {
+      flex: 1; padding: 8px 4px;
+      border-radius: 10px; border: 1px solid var(--sep);
+      background: rgba(0,0,0,0.18);
+      font-size: 12.5px; font-weight: 500;
+      color: var(--text2); cursor: pointer;
+      font-family: inherit;
+      transition: background 130ms, color 130ms, border-color 130ms;
+      text-align: center;
+    }
+    .spd:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .spd.active {
+      background: var(--accent-soft);
+      border-color: rgba(10,132,255,0.35);
+      color: var(--text);
+    }
+
+    /* ─── PILL BADGE (show id) ─── */
+    .show-pill {
+      font-size: 10.5px; font-weight: 500;
+      padding: 2px 8px; border-radius: 999px;
+      background: rgba(0,0,0,0.20);
+      color: var(--text2); flex-shrink: 0;
+      border: 1px solid var(--sep);
+    }
+
+    /* ─── SEGMENTS LIST ─── */
+    .segs { max-height: 120px; overflow-y: auto; }
+    .seg {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; border-bottom: 1px solid var(--sep);
+      gap: 10px;
+    }
+    .seg:last-child { border-bottom: none; }
+    .seg-name { font-size: 12.5px; font-weight: 400; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .seg-time { font-size: 11px; color: var(--text3); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+    /* ─── STATS ─── */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat {
+      background: var(--surface); border-radius: 16px;
+      padding: 14px 14px 12px;
+      border: 1px solid var(--sep);
+    }
+    .stat-ico { margin-bottom: 10px; }
+    .stat-ico svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .stat-num { font-size: 30px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+    .stat-lbl { font-size: 10.5px; color: var(--text3); margin-top: 3px; font-weight: 500; }
+
+    /* ─── SHORTCUTS ─── */
+    .sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .sc {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 11px; border-radius: 10px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid var(--sep);
+      font-size: 11.5px; color: var(--text2);
+    }
+    kbd {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 10px; padding: 2px 6px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 5px; color: var(--text2);
+      min-width: 46px; text-align: center; flex-shrink: 0;
+    }
+
+    /* ─── OUTRO SECTION ─── */
+    .outro-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      padding: 12px 14px 14px;
+    }
+    .outro-time-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .outro-time-wrap input {
+      flex: 1;
+      padding: 10px 12px;
+      padding-right: 58px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.3px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid var(--sep);
+      border-radius: 12px;
+      color: var(--text);
+    }
+    .outro-time-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: var(--ring);
+    }
+    .outro-badge {
+      position: absolute;
+      right: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.20);
+      color: var(--text2);
+      border: 1px solid var(--sep);
+    }
+    .outro-badge.manual {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(10,132,255,0.30);
+    }
+    .outro-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .outro-btn {
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--surface-elevated);
+      border: 1px solid var(--sep);
+      color: var(--text);
+      transition: all 140ms;
+    }
+    .outro-btn:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255,255,255,0.14);
+    }
+    .outro-btn-secondary {
+      background: transparent;
+      border-color: var(--sep);
+      color: var(--text2);
+    }
+    .outro-btn-secondary:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      display: flex; gap: 8px;
+      padding: 10px 14px 11px;
+      border-top: 1px solid var(--sep);
+    }
+    .footer button { flex: 1; padding: 8px 6px; font-size: 11.5px; border-radius: 10px; }
+    .btn-export { color: var(--text); background: var(--surface-elevated); }
+    .btn-export:hover { background: var(--surface-hover); }
+
+    /* ─── STATUS ─── */
+    .statusbar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px 11px;
+      font-size: 11px; color: var(--text3);
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--text3); flex-shrink: 0;
+      transition: background 300ms, box-shadow 300ms;
+    }
+    .dot.active { background: var(--good); box-shadow: 0 0 0 3px rgba(48,209,88,0.20); }
+    .dot.error  { background: var(--bad);  box-shadow: 0 0 0 3px rgba(255,69,58,0.20); }
+
+    .empty { text-align: center; padding: 16px 12px; color: var(--text3); font-size: 12px; line-height: 1.5; }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 99px; }
+
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3" fill="var(--accent)" stroke="none"/>
+        <line x1="19" y1="3" x2="19" y2="21"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <div class="brand-name">StreamShade Pro</div>
+      <div class="brand-sub">LookMovie Enhancer</div>
+    </div>
+    <div class="time-pill" id="timeSaved">0m saved</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" data-tab="main">Main</button>
+    <button class="tab" data-tab="advanced">Advanced</button>
+    <button class="tab" data-tab="stats">Stats</button>
+  </div>
+
+  <!-- ═══ MAIN ═══ -->
+  <div id="main" class="pane active">
+
+    <div class="action-row">
+      <button id="skipIntroNowBtn" class="act act-intro">
+        <span class="act-ico"><svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></span>
+        <span class="act-lbl">Skip Intro</span>
+      </button>
+      <button id="fullscreenBtn" class="act act-full">
+        <span class="act-ico"><svg viewBox="0 0 24 24"><path d="M3 7V3h4M17 3h4v4M21 17v4h-4M7 21H3v-4"/></svg></span>
+        <span class="act-lbl">Fullscreen</span>
+      </button>
+      <button id="skipOutroNowBtn" class="act act-outro">
+        <span class="act-ico"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></span>
+        <span class="act-lbl">Skip Outro</span>
+      </button>
+      <button id="nextEpisodeBtn" class="act act-outro">
+        <span class="act-ico"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/><line x1="22" y1="5" x2="22" y2="19"/></svg></span>
+        <span class="act-lbl">Next Ep</span>
+      </button>
+    </div>
+
+    <p class="group-header">Skipping</p>
+    <div class="group">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Skip Intro</div>
+          <div class="row-sub">Auto-skip opening sequence</div>
+        </div>
+        <div class="row-right">
+          <input type="number" id="introSeconds" min="0" max="600" value="40">
+          <span class="val-badge">s</span>
+          <label class="tog"><input type="checkbox" id="skipIntro" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Auto Fullscreen</div>
+          <div class="row-sub">After playback starts</div>
+        </div>
+        <div class="row-right">
+          <input type="number" id="fullscreenSeconds" min="0" max="600" value="35">
+          <span class="val-badge">s</span>
+          <label class="tog"><input type="checkbox" id="autoFullscreen" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Auto-skip Outro</div>
+          <div class="row-sub">Jump to next episode</div>
+        </div>
+        <label class="tog"><input type="checkbox" id="autoSkip" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+    </div>
+
+    <p class="group-header">Current Show</p>
+    <div class="group" id="showSection">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Show</div>
+        </div>
+        <span class="show-pill" id="showIdBadge">No show</span>
+      </div>
+      <div class="row" id="episodeInfoRow" style="display:none;">
+        <div class="row-left" style="min-width:0; overflow:hidden;">
+          <div class="row-label" id="episodeInfoTitle" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">—</div>
+          <div class="row-sub" id="episodeInfoSub" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">—</div>
+        </div>
+        <div class="row-right" style="gap:4px;">
+          <button id="prevEpisodeBtn" class="sm" style="padding:5px 8px;" title="Previous episode">←</button>
+          <button id="nextEpisodeSmallBtn" class="sm" style="padding:5px 8px;" title="Next episode">→</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Intro starts at</div>
+          <div class="row-sub">Leave blank for start of video</div>
+        </div>
+        <div class="row-right">
+          <input type="number" id="showIntroStartSeconds" min="0" max="600" placeholder="—" style="width:54px;">
+          <span class="val-badge">s</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Intro ends at</div>
+          <div class="row-sub">Overrides default · auto-learns</div>
+        </div>
+        <div class="row-right">
+          <input type="number" id="showIntroSeconds" min="0" max="600" placeholder="—" style="width:54px;">
+          <span class="val-badge">s</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Speed</div>
+          <div class="row-sub">Per-show default speed</div>
+        </div>
+        <div class="row-right">
+          <input type="number" id="showSpeed" min="0.25" max="3" step="0.25" placeholder="—" style="width:54px;">
+          <span class="val-badge">×</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Auto-learn</div>
+          <div class="row-sub">Saves when you press Skip Intro</div>
+        </div>
+        <label class="tog"><input type="checkbox" id="autoLearnIntro" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row">
+        <button id="clearShowIntroBtn" class="ghost sm" style="width:100%;">Reset this show to default</button>
+      </div>
+    </div>
+
+    <p class="group-header">Outro</p>
+    <div class="group">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">Auto-detect outro</div>
+          <div class="row-sub">Last 1:30 of episodes · last 5% of films</div>
+        </div>
+        <label class="tog"><input type="checkbox" id="autoDetectOutro" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row outro-row">
+        <div class="outro-time-wrap">
+          <input type="text" id="outroTime" placeholder="MM:SS or 95%" autocomplete="off">
+          <span class="outro-badge" id="outroBadge">Auto</span>
+        </div>
+        <div class="outro-actions">
+          <button id="setNowBtn" class="sm outro-btn">Set Now</button>
+          <button id="autoDetectBtn" class="sm outro-btn outro-btn-secondary">Auto-detect</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="group-header">Playback Speed</p>
+    <div class="group">
+      <div class="row">
+        <div class="speed-strip" style="width:100%;">
+          <button class="spd" data-speed="0.5">0.5×</button>
+          <button class="spd active" data-speed="1">1×</button>
+          <button class="spd" data-speed="1.5">1.5×</button>
+          <button class="spd" data-speed="2">2×</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- ═══ ADVANCED ═══ -->
+  <div id="advanced" class="pane">
+
+    <p class="group-header">Automation</p>
+    <div class="group">
+      <div class="row">
+        <div class="row-left"><div class="row-label">Auto-click skip overlays</div><div class="row-sub">If off, buttons appear but wait for your click</div></div>
+        <label class="tog"><input type="checkbox" id="autoClickSkipOverlays" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row">
+        <div class="row-left"><div class="row-label">Close Timer Ads</div><div class="row-sub">Auto-click "Go to Show"</div></div>
+        <label class="tog"><input type="checkbox" id="autoCloseEnabled" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row">
+        <div class="row-left"><div class="row-label">Continue Watching</div><div class="row-sub">Auto-click when paused long</div></div>
+        <label class="tog"><input type="checkbox" id="continueWatchingEnabled" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row">
+        <div class="row-left"><div class="row-label">Notifications</div><div class="row-sub">Show in-page skip alerts</div></div>
+        <label class="tog"><input type="checkbox" id="showNotifications" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row">
+        <div class="row-left"><div class="row-label">Fast Startup</div><div class="row-sub">Skip 10s pre-init countdown</div></div>
+        <label class="tog"><input type="checkbox" id="fastStartup" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+    </div>
+
+    <p class="group-header">Bedtime Mode</p>
+    <div class="group">
+      <div class="row">
+        <div class="row-left"><div class="row-label">Enable</div><div class="row-sub">Redirect tab to YouTube at set time</div></div>
+        <label class="tog"><input type="checkbox" id="bedtimeEnabled"><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row">
+        <div class="row-left"><div class="row-label">Time</div><div class="row-sub">24-hour format</div></div>
+        <input type="time" id="bedtimeTime" value="23:00">
+      </div>
+      <div class="row" style="flex-direction:column; align-items:stretch; gap:6px;">
+        <div class="row-label" style="font-size:12px; color:var(--text2);">Redirect URL</div>
+        <input type="text" id="bedtimeUrl" placeholder="https://www.youtube.com/...">
+      </div>
+    </div>
+
+    <p class="group-header">Custom Segments</p>
+    <div class="group">
+      <div class="segs" id="segmentsList">
+        <div class="empty">No segments yet.<br>Press <kbd style="min-width:auto;display:inline;">⇧S</kbd> while watching to add one.</div>
+      </div>
+      <div class="row">
+        <button id="clearSegmentsBtn" class="ghost sm" style="width:100%;">Clear All Segments</button>
+      </div>
+    </div>
+
+    <p class="group-header">Keyboard Shortcuts</p>
+    <div class="group">
+      <div class="row" style="padding:12px 14px;">
+        <div class="sc-grid" style="width:100%;">
+          <div class="sc"><kbd>⇧I</kbd><span>Skip intro</span></div>
+          <div class="sc"><kbd>⇧O</kbd><span>Skip outro</span></div>
+          <div class="sc"><kbd>⇧N</kbd><span>Next episode</span></div>
+          <div class="sc"><kbd>⇧F</kbd><span>Fullscreen</span></div>
+          <div class="sc"><kbd>⇧S</kbd><span>Add segment</span></div>
+          <div class="sc"><kbd>, .</kbd><span>Speed</span></div>
+          <div class="sc"><kbd>⇧↑↓</kbd><span>Volume</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /advanced -->
+
+  <!-- ═══ STATS ═══ -->
+  <div id="stats" class="pane">
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 15.5 14"/></svg></div>
+        <div class="stat-num" id="statTimeSaved">0</div>
+        <div class="stat-lbl">Minutes Saved</div>
+      </div>
+      <div class="stat">
+        <div class="stat-ico"><svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></div>
+        <div class="stat-num" id="statIntros">0</div>
+        <div class="stat-lbl">Intros Skipped</div>
+      </div>
+      <div class="stat">
+        <div class="stat-ico"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></div>
+        <div class="stat-num" id="statOutros">0</div>
+        <div class="stat-lbl">Outros Skipped</div>
+      </div>
+      <div class="stat">
+        <div class="stat-ico"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <div class="stat-num" id="statSegments">0</div>
+        <div class="stat-lbl">Segments Skipped</div>
+      </div>
+    </div>
+  </div><!-- /stats -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <button id="exportBtn" class="btn-export">Export</button>
+    <button id="importBtn">Import</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="statusbar">
+    <div class="dot" id="statusIndicator"></div>
+    <span id="statusText">Initializing…</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

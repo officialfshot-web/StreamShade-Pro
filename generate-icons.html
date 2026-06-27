@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Create StreamShade Icons</title>
+<style>
+body { font-family: system-ui; padding: 20px; background: #1a1a2e; color: white; }
+button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #00d4ff; border: none; border-radius: 8px; color: #0f0f23; font-weight: bold; }
+#status { margin-top: 20px; }
+</style>
+</head>
+<body>
+<h1>StreamShade Icon Generator</h1>
+<p>Click to generate PNG icons for the extension:</p>
+<button onclick="createIcons()">Create Icons</button>
+<div id="status"></div>
+<script>
+function drawIcon(canvas, size) {
+    const ctx = canvas.getContext('2d');
+    
+    // Background
+    ctx.fillStyle = '#0f0f23';
+    ctx.fillRect(0, 0, size, size);
+    
+    // Rounded rect clip
+    ctx.beginPath();
+    ctx.roundRect(2, 2, size-4, size-4, size/8);
+    ctx.clip();
+    
+    // Fill
+    ctx.fillStyle = '#16213e';
+    ctx.fillRect(0, 0, size, size);
+    
+    // Eye arc
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = size/16;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, size/3.5, Math.PI + 0.3, 2*Math.PI - 0.3);
+    ctx.stroke();
+    
+    // Diagonal slash
+    ctx.beginPath();
+    ctx.moveTo(size*0.25, size*0.35);
+    ctx.lineTo(size*0.75, size*0.75);
+    ctx.stroke();
+}
+
+function createIcons() {
+    const sizes = [16, 32, 48, 128];
+    const folder = 'C:/Users/taskk/Downloads/New folder';
+    const status = document.getElementById('status');
+    
+    sizes.forEach(size => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        drawIcon(canvas, size);
+        
+        const link = document.createElement('a');
+        link.download = `icon${size}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.innerText = `Download icon${size}.png`;
+        link.style.display = 'block';
+        link.style.color = '#00d4ff';
+        link.style.margin = '10px 0';
+        status.appendChild(link);
+    });
+}
+</script>
+</body>
+</html>
