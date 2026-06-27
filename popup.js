@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     autoDetectOutro: document.getElementById('autoDetectOutro'),
     autoLearnIntro: document.getElementById('autoLearnIntro'),
     audioFingerprintIntro: document.getElementById('audioFingerprintIntro'),
+    rememberLastPosition: document.getElementById('rememberLastPosition'),
     introFingerprintStatus: document.getElementById('introFingerprintStatus'),
     clearIntroFingerprintBtn: document.getElementById('clearIntroFingerprintBtn'),
     showIdBadge: document.getElementById('showIdBadge'),
@@ -178,6 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     els.autoDetectOutro.checked = s.autoDetectOutro !== false;
     els.autoLearnIntro.checked = s.autoLearnIntro !== false;
     els.audioFingerprintIntro.checked = s.audioFingerprintIntro === true;
+    els.rememberLastPosition.checked = s.rememberLastPosition !== false;
     els.bedtimeEnabled.checked = s.bedtimeEnabled === true;
     els.bedtimeTime.value = s.bedtimeTime || '23:00';
     els.bedtimeUrl.value = s.bedtimeUrl || 'https://www.youtube.com/watch?v=HH0pojCvq44';
@@ -267,6 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       autoDetectOutro: els.autoDetectOutro.checked,
       autoLearnIntro: els.autoLearnIntro.checked,
       audioFingerprintIntro: els.audioFingerprintIntro.checked,
+      rememberLastPosition: els.rememberLastPosition.checked,
       bedtimeEnabled: els.bedtimeEnabled.checked,
       bedtimeTime: els.bedtimeTime.value || '23:00',
       bedtimeUrl: els.bedtimeUrl.value || 'https://www.youtube.com/watch?v=HH0pojCvq44',
@@ -420,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const debouncedSave = debounce(save, 300);
     [els.introSeconds, els.fullscreenSeconds, els.outroTime, els.bedtimeTime, els.bedtimeUrl].forEach(el => el.addEventListener('input', debouncedSave));
-    [els.skipIntro, els.autoFullscreen, els.autoSkip, els.autoCloseEnabled, els.continueWatchingEnabled, els.showNotifications, els.autoClickSkipOverlays, els.fastStartup, els.autoDetectOutro, els.autoLearnIntro, els.audioFingerprintIntro, els.bedtimeEnabled].forEach(el => el.addEventListener('change', save));
+    [els.skipIntro, els.autoFullscreen, els.autoSkip, els.autoCloseEnabled, els.continueWatchingEnabled, els.showNotifications, els.autoClickSkipOverlays, els.fastStartup, els.autoDetectOutro, els.autoLearnIntro, els.audioFingerprintIntro, els.rememberLastPosition, els.bedtimeEnabled].forEach(el => el.addEventListener('change', save));
 
     const debouncedShowIntroSave = debounce(saveShowIntro, 300);
     const debouncedShowIntroStartSave = debounce(saveShowIntroStart, 300);

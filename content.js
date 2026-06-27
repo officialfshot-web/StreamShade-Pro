@@ -49,6 +49,9 @@
     // Audio fingerprinting for intro detection
     audioFingerprintIntro: false,
 
+    // Auto-resume last watched episode
+    rememberLastPosition: true,
+
     // Per-show settings
     perShowSettings: {},
     customSegments: []
@@ -239,6 +242,50 @@
       title: ep.title || '',
       idEpisode: ep.id_episode
     };
+  }
+
+  function recordLastPosition() {
+    if (!settings.rememberLastPosition) return;
+    const ep = getCurrentEpisodeInfo();
+    if (!ep || !currentShowId) return;
+    const hash = buildEpisodeHash(ep);
+    if (!hash) return;
+    const key = `ss_lastpos_${currentShowId}`;
+    const data = {
+      showId: currentShowId,
+      season: ep.season,
+      episode: ep.episode,
+      idEpisode: ep.idEpisode,
+      title: ep.title || '',
+      showTitle: ep.showTitle || '',
+      hash,
+      url: `${location.origin}${location.pathname}#${hash}`,
+      updatedAt: Date.now()
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (_) {}
+  }
+
+  function restoreLastPosition() {
+    if (!settings.rememberLastPosition) return;
+    const showId = extractShowId();
+    if (!showId) return;
+    const hash = location.hash;
+    // If a specific episode is already selected, don't redirect.
+    if (hash && /^#S\d+-E\d+-\d+$/i.test(hash)) return;
+    const key = `ss_lastpos_${showId}`;
+    let data = null;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) data = JSON.parse(raw);
+    } catch (_) {}
+    if (!data || !data.hash) return;
+    // Avoid redirecting if the current hash already matches.
+    if (location.hash.replace(/^#/, '') === data.hash) return;
+    console.log('[StreamShade] Resuming last position:', data.hash);
+    showNotification(`▶ Resuming S${data.season}E${data.episode}`, 2500);
+    location.hash = data.hash;
   }
 
   // ===== NOTIFICATION SYSTEM =====
@@ -1411,6 +1458,9 @@
       audioContext.resume().catch(() => {});
     }
 
+    // Remember the episode so we can resume it later.
+    setTimeout(recordLastPosition, 1000);
+
     if (!settings.autoFullscreen || state.hasGoneFullscreen) return;
 
     // Arm fullscreen relative to when playback starts/resumes.
@@ -1774,6 +1824,12 @@
   } catch (_) { /* extension context not ready */ }
 
   function init() {
+    // Resume the last watched episode if the user landed on a show page
+    // without a specific episode selected.
+    if (isPlayPage()) {
+      restoreLastPosition();
+    }
+
     // Aggressively click pre-init skip buttons for the first 10s.
     if (isPlayPage()) {
       let n = 0;
@@ -1815,6 +1871,18 @@
         }
       });
       navObserver.observe(root, { childList: true, subtree: true });
+
+      // Restore last watched episode on in-page navigation.
+      const originalPushState = history.pushState;
+      const originalReplaceState = history.replaceState;
+      history.pushState = function(...args) {
+        originalPushState.apply(this, args);
+        if (isPlayPage()) restoreLastPosition();
+      };
+      history.replaceState = function(...args) {
+        originalReplaceState.apply(this, args);
+        if (isPlayPage()) restoreLastPosition();
+      };
     };
 
     if (document.readyState === 'loading') {

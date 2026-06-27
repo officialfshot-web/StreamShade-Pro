@@ -228,6 +228,12 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: The hidden `universalAutoClick` and `popupAutoClick` features were enabled by default and had no UI controls. They clicked any element matching broad selectors like `*[style*="z-index"]` and `*[style*="position: fixed"]`, which caused LookMovie ad popups to open many new tabs when visiting the site.
 - **Fix**: Completely removed the `universalAutoClick` and `popupAutoClick` systems and their associated UI controls. The original gentle popup closer and continue-watching auto-click remain enabled.
 
+## Bug #38 — Users had to manually find the episode they left off on
+- **Severity**: Medium
+- **File**: `content.js`, `popup.html`, `popup.js`
+- **Problem**: When returning to a show, users had to click through seasons and episodes to find where they left off. LookMovie's own continue-watching was unreliable.
+- **Fix**: Added an `Auto-Resume` feature. When an episode is played, the extension stores the show ID, season, episode, and episode hash in `localStorage`. On the next visit to the show page without a specific episode selected, it automatically redirects to the last watched episode and shows a notification. Added a toggle in the Advanced tab.
+
 ---
 
 ## Summary
@@ -235,8 +241,8 @@ All bugs identified and fixed during the review sessions.
 | Severity | Count |
 |----------|-------|
 | High     | 15    |
-| Medium   | 12    |
+| Medium   | 13    |
 | Low      | 11    |
-| **Total**| **38**|
+| **Total**| **39**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.
