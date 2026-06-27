@@ -44,12 +44,14 @@
       }
     }
 
+    html, body { margin: 0; padding: 0; box-sizing: border-box; }
+    html { height: 100%; background: var(--bg-gradient); }
+    body { min-height: 100%; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       width: 360px;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg-gradient);
       color: var(--text);
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
