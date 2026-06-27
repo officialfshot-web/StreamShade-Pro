@@ -196,6 +196,18 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: The small `←` / `→` episode nav buttons flashed "Prev!" / "Next!" on click, which overflowed their 28×28px bounds.
 - **Fix**: Changed flash text to a checkmark `✓` and removed conflicting inline padding so the CSS controls the button size.
 
+## Bug #33 — Action buttons stayed disabled if popup was reopened after a no-video fallback
+- **Severity**: Medium
+- **File**: `popup.js`
+- **Problem**: `disableActions()` disabled the main action buttons when no video was found, but there was no corresponding `enableActions()` for cases where the popup state later reflected an active video.
+- **Fix**: Added `enableActions()` and call it when `loadAll()` detects a video with `duration > 0`.
+
+## Bug #34 — Long show titles and episode info could overflow the Current Show card
+- **Severity**: Low
+- **File**: `popup.html`
+- **Problem**: Long show names or episode titles could wrap or break the layout of the Current Show hero card.
+- **Fix**: Added `white-space: nowrap`, `overflow: hidden`, and `text-overflow: ellipsis` to `.show-title` and `.show-episode`.
+
 ---
 
 ## Summary
@@ -203,8 +215,8 @@ All bugs identified and fixed during the review sessions.
 | Severity | Count |
 |----------|-------|
 | High     | 14    |
-| Medium   | 9     |
-| Low      | 10    |
-| **Total**| **33**|
+| Medium   | 10    |
+| Low      | 11    |
+| **Total**| **35**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.

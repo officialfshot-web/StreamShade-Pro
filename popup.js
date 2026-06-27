@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateUI(res.settings, res.playbackRate);
       updateShowUI();
       updateStatus(state.isVideoActive ? 'active' : 'idle', state.isVideoActive ? 'Video detected' : 'No video');
+      if (state.isVideoActive) enableActions();
       loadStats();
     });
   }
@@ -193,6 +194,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function disableActions() {
     [els.skipIntroNowBtn, els.fullscreenBtn, els.skipOutroNowBtn, els.nextEpisodeBtn].forEach(btn => btn.disabled = true);
+  }
+
+  function enableActions() {
+    [els.skipIntroNowBtn, els.fullscreenBtn, els.skipOutroNowBtn, els.nextEpisodeBtn].forEach(btn => btn.disabled = false);
   }
 
   function loadStats() {
