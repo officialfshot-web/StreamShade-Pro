@@ -46,6 +46,33 @@
     // Outro
     autoDetectOutro: true,
 
+    // Universal Auto-Click
+    universalAutoClick: true,
+    autoClickDelay: 500,
+
+    // Generic Popup Auto-Clicker
+    popupAutoClick: true,
+    popupClickDelay: 300,
+    popupSelectors: [
+      // Common popup/dialog patterns
+      '[role="dialog"]',
+      '[role="alertdialog"]',
+      '[role="modal"]',
+      '.modal',
+      '.popup',
+      '.dialog',
+      '.overlay',
+      '.lightbox',
+      // High z-index elements (likely popups)
+      '*[style*="z-index"]',
+      // Fixed positioned elements (likely overlays)
+      '*[style*="position: fixed"]',
+      // Elements with backdrop
+      '.backdrop',
+      '.modal-backdrop',
+      '.overlay-backdrop'
+    ],
+
     // Per-show settings
     perShowSettings: {},
     customSegments: []
@@ -88,15 +115,15 @@
 
   // ===== SHARED STYLES =====
   const GLASS_PILL_CSS = `
-    background: rgba(28, 28, 30, 0.82);
+    background: rgba(255, 255, 255, 0.88);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-radius: 999px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.12);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-weight: 600;
     letter-spacing: -0.2px;
-    color: white;
+    color: #1a1d2b;
   `;
 
   const OVERLAY_TRANSITION = 'opacity 0.35s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94)';
@@ -235,7 +262,7 @@
       notificationEl.style.cssText = `
         position: fixed; top: 20px; right: 20px;
         ${GLASS_PILL_CSS}
-        border: 1px solid rgba(255,255,255,0.12);
+        border: 1px solid rgba(0,0,0,0.08);
         padding: 12px 20px; font-size: 14px;
         white-space: nowrap; z-index: 2147483646;
         opacity: 0; transform: translateY(-10px) scale(0.96);
@@ -285,7 +312,7 @@
           <line x1="19" y1="5" x2="19" y2="19"></line>
         </svg>
         <span>Skip Outro</span>
-        <div class="ss-overlay-progress" style="position:absolute;bottom:0;left:0;height:3px;width:100%;background:rgba(255,255,255,0.25);transform-origin:left;transform:scaleX(1);"></div>
+        <div class="ss-overlay-progress" style="position:absolute;bottom:0;left:0;height:3px;width:100%;background:rgba(0,0,0,0.12);transform-origin:left;transform:scaleX(1);"></div>
       `;
       skipOutroProgressEl = skipOutroOverlayEl.querySelector('.ss-overlay-progress');
       skipOutroOverlayEl.addEventListener('click', (e) => {
@@ -367,7 +394,7 @@
           <line x1="5" y1="19" x2="5" y2="5"></line>
         </svg>
         <span>Skip Intro</span>
-        <div class="ss-overlay-progress" style="position:absolute;bottom:0;left:0;height:3px;width:100%;background:rgba(255,255,255,0.25);transform-origin:left;transform:scaleX(1);"></div>
+        <div class="ss-overlay-progress" style="position:absolute;bottom:0;left:0;height:3px;width:100%;background:rgba(0,0,0,0.12);transform-origin:left;transform:scaleX(1);"></div>
       `;
       skipIntroProgressEl = skipIntroOverlayEl.querySelector('.ss-overlay-progress');
       skipIntroOverlayEl.addEventListener('click', (e) => {
@@ -486,6 +513,279 @@
     });
   }
 
+  // ===== GENERIC POPUP AUTO-CLICKER =====
+  // Detects and clicks any popup/dialog/window that appears on screen
+  
+  function isPopupElement(element) {
+    if (!element || element.nodeType !== 1) return false;
+    
+    // Check if element matches popup selectors
+    for (const selector of settings.popupSelectors) {
+      try {
+        if (element.matches && element.matches(selector)) return true;
+      } catch (e) {
+        // Invalid selector, skip
+      }
+    }
+    
+    // Check for high z-index (likely popup)
+    const style = window.getComputedStyle(element);
+    const zIndex = parseInt(style.zIndex);
+    if (zIndex > 1000) return true;
+    
+    // Check for fixed positioning with overlay-like properties
+    if (style.position === 'fixed' || style.position === 'absolute') {
+      const rect = element.getBoundingClientRect();
+      // If it covers a significant portion of the screen
+      const coverage = (rect.width * rect.height) / (window.innerWidth * window.innerHeight);
+      if (coverage > 0.3) return true;
+    }
+    
+    // Check for backdrop-like styling
+    if (style.position === 'fixed' && 
+        (style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
+         style.backgroundColor === 'rgba(0, 0, 0, 0.3)' ||
+         style.backgroundColor === 'rgba(0, 0, 0, 0.7)')) {
+      return true;
+    }
+    
+    // Check for common popup class names
+    const className = classStr(element).toLowerCase();
+    const popupKeywords = ['modal', 'popup', 'dialog', 'overlay', 'lightbox', 'alert', 'notification', 'toast'];
+    if (popupKeywords.some(keyword => className.includes(keyword))) return true;
+    
+    return false;
+  }
+
+  function findClickableInPopup(popupElement) {
+    // Look for buttons, links, or clickable elements within the popup
+    const clickableSelectors = [
+      'button',
+      'a[href]',
+      'input[type="button"]',
+      'input[type="submit"]',
+      '[role="button"]',
+      '.btn',
+      '.button',
+      '.close',
+      '.dismiss',
+      '.accept',
+      '.confirm',
+      '.ok',
+      '.yes',
+      '.continue',
+      '.proceed'
+    ];
+    
+    for (const selector of clickableSelectors) {
+      const elements = popupElement.querySelectorAll(selector);
+      if (elements.length > 0) {
+        // Return the first visible clickable element
+        for (const el of elements) {
+          const rect = el.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0 && 
+              window.getComputedStyle(el).display !== 'none') {
+            return el;
+          }
+        }
+      }
+    }
+    
+    // If no specific button found, try clicking the popup itself
+    return popupElement;
+  }
+
+  function autoClickPopup() {
+    if (!settings.popupAutoClick) return false;
+    
+    // Find all potential popup elements
+    const allElements = document.querySelectorAll('*');
+    const popups = Array.from(allElements).filter(el => isPopupElement(el));
+    
+    let clicked = false;
+    for (const popup of popups) {
+      // Skip if we recently clicked this popup
+      const popupId = popup.tagName + (popup.id || '') + (popup.className || '');
+      if (state.recentlyClickedPopups && state.recentlyClickedPopups.has(popupId)) continue;
+      
+      const clickableElement = findClickableInPopup(popup);
+      if (clickableElement) {
+        try {
+          // Ensure element is clickable
+          if (clickableElement.disabled) {
+            clickableElement.disabled = false;
+            clickableElement.removeAttribute('disabled');
+          }
+          clickableElement.style.pointerEvents = 'auto';
+          
+          // Click it
+          clickableElement.click();
+          
+          // Track clicked popup
+          if (!state.recentlyClickedPopups) state.recentlyClickedPopups = new Set();
+          state.recentlyClickedPopups.add(popupId);
+          
+          // Clean up after 5 seconds
+          setTimeout(() => {
+            if (state.recentlyClickedPopups) {
+              state.recentlyClickedPopups.delete(popupId);
+            }
+          }, 5000);
+          
+          console.log('[StreamShade] Auto-clicked popup:', clickableElement.tagName, clickableElement.textContent);
+          if (settings.showNotifications) {
+            showNotification('🎯 Auto-clicked popup', 1000);
+          }
+          
+          clicked = true;
+          break; // Only click one popup per check
+        } catch (err) {
+          console.warn('[StreamShade] Popup click failed:', err);
+        }
+      }
+    }
+    
+    return clicked;
+  }
+
+  // ===== UNIVERSAL AUTO-CLICK SYSTEM =====
+  // Automatically clicks any clickable element that appears on screen
+  
+  function isElementClickable(element) {
+    if (!element || element.nodeType !== 1) return false;
+    
+    // Skip if element is hidden or has no dimensions
+    const rect = element.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+    if (window.getComputedStyle(element).display === 'none') return false;
+    if (window.getComputedStyle(element).visibility === 'hidden') return false;
+    if (window.getComputedStyle(element).opacity === '0') return false;
+    
+    // Check for common clickable attributes and tags
+    const clickableTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'OPTION', 'LABEL'];
+    const hasClickableTag = clickableTags.includes(element.tagName);
+    
+    const hasClickableClass = /\b(button|btn|click|link|nav|menu|item|option|choice|action)\b/i.test(classStr(element));
+    const hasClickableRole = element.getAttribute('role') && /\b(button|link|menuitem|option|tab|button)\b/i.test(element.getAttribute('role'));
+    const hasOnClick = element.onclick || element.getAttribute('onclick');
+    const hasHref = element.tagName === 'A' && element.getAttribute('href');
+    const isSubmitInput = element.tagName === 'INPUT' && /\b(submit|button)\b/i.test(element.getAttribute('type'));
+    const hasTabIndex = element.getAttribute('tabindex') && parseInt(element.getAttribute('tabindex')) >= 0;
+    
+    // Check for cursor pointer
+    const hasPointerCursor = window.getComputedStyle(element).cursor === 'pointer';
+    
+    // Check if element has event listeners (simplified check)
+    const hasEventListeners = element.onclick || element.onmousedown || element.onmouseup || element.hasAttribute('data-click');
+    
+    return hasClickableTag || hasClickableClass || hasClickableRole || hasOnClick || hasHref || 
+           isSubmitInput || hasTabIndex || hasPointerCursor || hasEventListeners;
+  }
+
+  function shouldAutoClickElement(element) {
+    if (!settings.universalAutoClick || !isElementClickable(element)) return false;
+    
+    // Safety filters - avoid clicking certain elements
+    const unsafeSelectors = [
+      'script', 'style', 'meta', 'link', 'head', 'title',
+      '[type="password"]', '[type="file"]', '[type="checkbox"]', '[type="radio"]',
+      '.ads', '.advertisement', '.ad-container', '.google-ads',
+      '[data-ad]', '[data-ads]', '[id*="ad"]', '[class*="ad-"]',
+      'iframe', 'object', 'embed', 'video', 'audio'
+    ];
+    
+    for (const selector of unsafeSelectors) {
+      if (element.matches && element.matches(selector)) return false;
+      if (element.closest && element.closest(selector)) return false;
+    }
+    
+    // Skip elements that are too small (likely decorative)
+    const rect = element.getBoundingClientRect();
+    if (rect.width < 10 || rect.height < 10) return false;
+    
+    // Skip elements that are part of the video player controls (we handle those separately)
+    if (element.closest('.video-js, .jwplayer, .plyr, .vjs-control-bar, .jw-controlbar')) return false;
+    
+    // Skip elements that contain only whitespace or are empty
+    const text = element.textContent?.trim() || '';
+    if (text.length === 0 && !element.querySelector('svg, img, i, [class*="icon"]')) return false;
+    
+    return true;
+  }
+
+  function autoClickElement(element) {
+    if (!shouldAutoClickElement(element)) return false;
+    
+    try {
+      // Ensure element is enabled and clickable
+      if (element.disabled) {
+        element.disabled = false;
+        element.removeAttribute('disabled');
+      }
+      element.style.pointerEvents = 'auto';
+      
+      // Create a proper click event
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      
+      element.dispatchEvent(clickEvent);
+      
+      // Log the click for debugging
+      const elementInfo = element.tagName.toLowerCase() + 
+                         (element.id ? '#' + element.id : '') + 
+                         (element.className ? '.' + element.className.split(' ').join('.') : '') +
+                         (element.textContent ? ' "' + element.textContent.trim().substring(0, 30) + '"' : '');
+      console.log('[StreamShade] Auto-clicked:', elementInfo);
+      
+      // Show notification for important clicks
+      if (settings.showNotifications && (element.tagName === 'BUTTON' || element.tagName === 'A')) {
+        showNotification('🖱 Auto-clicked element', 1000);
+      }
+      
+      return true;
+    } catch (err) {
+      console.warn('[StreamShade] Auto-click failed:', err);
+      return false;
+    }
+  }
+
+  function scanAndClickNewElements() {
+    if (!settings.universalAutoClick) return;
+    
+    // Find all clickable elements that are visible
+    const allElements = document.querySelectorAll('*');
+    const clickableElements = Array.from(allElements).filter(el => shouldAutoClickElement(el));
+    
+    // Click newly found elements (limit to avoid excessive clicking)
+    const maxClicksPerScan = 3;
+    let clickedCount = 0;
+    
+    for (const element of clickableElements) {
+      if (clickedCount >= maxClicksPerScan) break;
+      
+      // Skip if we recently clicked this element
+      const elementId = element.tagName + (element.id || '') + (element.className || '');
+      if (state.recentlyClicked && state.recentlyClicked.has(elementId)) continue;
+      
+      if (autoClickElement(element)) {
+        clickedCount++;
+        // Track recently clicked elements to avoid duplicate clicks
+        if (!state.recentlyClicked) state.recentlyClicked = new Set();
+        state.recentlyClicked.add(elementId);
+        
+        // Clean up old entries after 10 seconds
+        setTimeout(() => {
+          if (state.recentlyClicked) {
+            state.recentlyClicked.delete(elementId);
+          }
+        }, 10000);
+      }
+    }
+  }
+
   // ===== STREAMSHADE: ORIGINAL GENTLE POPUP CLOSER =====
   // Uses CSS injection to move elements off-screen (NOT display:none)
   // This prevents the site from detecting ad blockers
@@ -560,17 +860,19 @@
   }
 
   function startPopupWatcher() {
-    if (!settings.autoCloseEnabled) return;
+    if (!settings.autoCloseEnabled && !settings.universalAutoClick && !settings.popupAutoClick) return;
     
     // Start immediately - don't wait for video
     closeInterval = setInterval(() => {
       hidePremiumPopup();
       clickContinueWatching();
+      scanAndClickNewElements();
+      autoClickPopup();
     }, 2000);
     
-    // MutationObserver for dynamic popups
+    // MutationObserver for dynamic popups and new elements
     observer = new MutationObserver((mutations) => {
-      if (!settings.autoCloseEnabled) return;
+      if (!settings.autoCloseEnabled && !settings.universalAutoClick && !settings.popupAutoClick) return;
       
       mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
@@ -584,6 +886,31 @@
                 clickContinueWatching();
               }, 500);
             }
+            
+            // Generic popup auto-click for new elements
+            if (settings.popupAutoClick && isPopupElement(node)) {
+              setTimeout(() => {
+                autoClickPopup();
+              }, settings.popupClickDelay || 300);
+            }
+            
+            // Universal auto-click for new elements
+            if (settings.universalAutoClick) {
+              setTimeout(() => {
+                // Check the new node itself
+                if (shouldAutoClickElement(node)) {
+                  autoClickElement(node);
+                }
+                
+                // Check all descendants of the new node
+                const clickableDescendants = node.querySelectorAll('*');
+                clickableDescendants.forEach(descendant => {
+                  if (shouldAutoClickElement(descendant)) {
+                    autoClickElement(descendant);
+                  }
+                });
+              }, settings.autoClickDelay || 500);
+            }
           }
         });
       });
@@ -594,7 +921,7 @@
       subtree: true
     });
     
-    console.log('[StreamShade] Popup watcher started');
+    console.log('[StreamShade] Enhanced popup watcher started with generic popup auto-click');
   }
 
   // ===== VIDEO DETECTION =====
@@ -1085,7 +1412,7 @@
       speedIndicatorEl.style.cssText = `
         position: fixed; top: 20px; left: 20px;
         ${GLASS_PILL_CSS}
-        border: 1px solid rgba(255,255,255,0.12);
+        border: 1px solid rgba(0,0,0,0.08);
         padding: 8px 16px; font-size: 13px;
         z-index: 999999; pointer-events: none; display: none;
       `;
@@ -1273,19 +1600,19 @@
     const baseBtn = 'border: none; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', sans-serif; letter-spacing: -0.2px; transition: transform 100ms, background 120ms, color 120ms;';
 
     const spdBtn = (speed) => `
-      <button class="ss-spd-btn" data-speed="${speed}" style="${baseBtn} background: rgba(255,255,255,0.10); color: #fff;"
+      <button class="ss-spd-btn" data-speed="${speed}" style="${baseBtn} background: rgba(0,0,0,0.06); color: #1a1d2b;"
         onclick="this.closest('.ss-controls').dispatchEvent(new CustomEvent('speed', {detail:${speed}}))"
       >${speed}×</button>
     `;
 
     const actionBtn = (label, type) => `
-      <button class="ss-action-btn" style="${baseBtn} background: rgba(255,255,255,0.95); color: #000;"
+      <button class="ss-action-btn" style="${baseBtn} background: #0ea5e9; color: #fff;"
         onclick="this.closest('.ss-controls').dispatchEvent(new CustomEvent('${type}'))"
       >${label}</button>
     `;
 
     const navBtn = (label, type) => `
-      <button style="${baseBtn} background: rgba(255,255,255,0.10); color: #fff;"
+      <button style="${baseBtn} background: rgba(0,0,0,0.06); color: #1a1d2b;"
         onclick="this.closest('.ss-controls').dispatchEvent(new CustomEvent('${type}'))"
       >${label}</button>
     `;
@@ -1320,8 +1647,8 @@
     controlsEl.querySelectorAll('.ss-spd-btn').forEach((btn) => {
       const btnSpeed = parseFloat(btn.dataset.speed);
       const active = Math.abs(btnSpeed - speed) < 0.01;
-      btn.style.background = active ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.10)';
-      btn.style.color = active ? '#000' : '#fff';
+      btn.style.background = active ? '#0ea5e9' : 'rgba(0,0,0,0.06)';
+      btn.style.color = active ? '#fff' : '#1a1d2b';
     });
   }
 
@@ -1563,8 +1890,16 @@
       }, 250);
     }
 
-    // Start popup closer
+    // Start popup closer with universal and generic popup auto-click
     startPopupWatcher();
+
+    // Initial scan for existing clickable elements and popups
+    if (settings.universalAutoClick || settings.popupAutoClick) {
+      setTimeout(() => {
+        scanAndClickNewElements();
+        autoClickPopup();
+      }, 1000);
+    }
 
     // Top-frame-only UI features
     startBedtimeWatcher();
@@ -1769,6 +2104,8 @@
           Object.assign(state.stats, request.data.stats);
           saveSettings();
           sendResponse({ success: true });
+        } else {
+          sendResponse({ success: false, error: 'No data provided' });
         }
         break;
 
@@ -1777,6 +2114,10 @@
           sendResponse({ success: true });
           try { window.location.reload(); } catch (_) {}
         });
+        break;
+
+      default:
+        sendResponse({ success: false, error: 'Unknown action: ' + request.action });
         break;
     }
     return true;

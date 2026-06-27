@@ -154,6 +154,36 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: `baseBtn` template literal contained newlines that were injected into button `style=""` attributes, which some browsers may not parse correctly.
 - **Fix**: Collapsed to a single-line string.
 
+## Bug #26 — Episode title separator rendered trailing separator when show title missing
+- **Severity**: Low
+- **File**: `popup.html`, `popup.js`
+- **Problem**: The Current Show card showed `S1E1: Title · ` with a trailing `·` when no `showTitle` was available, leaving a dangling separator.
+- **Fix**: Added an explicit `episodeInfoSep` element and only show it when `ep.showTitle` is present.
+
+## Bug #27 — Cleared segments empty state used wrong CSS class
+- **Severity**: Low
+- **File**: `popup.js`
+- **Problem**: After pressing "Clear All Segments", the list was set to `class="empty-state"`, which has no matching CSS, so the empty message was unstyled/misaligned.
+- **Fix**: Changed the inserted HTML to `class="empty"` to match the existing empty-state styling.
+
+## Bug #28 — Current Show inputs did not look disabled when no show was detected
+- **Severity**: Low
+- **File**: `popup.html`, `popup.js`
+- **Problem**: The Intro start/end and Speed inputs were programmatically disabled when no show was active, but visually they looked identical to enabled inputs, causing confusion.
+- **Fix**: Added `:disabled` CSS styling and a `no-show` class on the card so the disabled state is clearly visible.
+
+## Bug #29 — Missing default response for unknown message actions
+- **Severity**: Medium
+- **File**: `content.js`
+- **Problem**: Unknown popup actions left `sendResponse` uncalled, causing the popup to hang waiting for a response.
+- **Fix**: Added a `default` case in the `chrome.runtime.onMessage` handler that returns `{ success: false, error: 'Unknown action: ... }`.
+
+## Bug #30 — `importSettings` handler did not respond when no data was provided
+- **Severity**: Medium
+- **File**: `content.js`
+- **Problem**: The `importSettings` action only responded when `request.data` was truthy; if the user imported an empty/invalid file, the popup hung.
+- **Fix**: Added an `else` branch that sends `{ success: false, error: 'No data provided' }`.
+
 ---
 
 ## Summary
@@ -161,8 +191,8 @@ All bugs identified and fixed during the review sessions.
 | Severity | Count |
 |----------|-------|
 | High     | 14    |
-| Medium   | 7     |
-| Low      | 4     |
-| **Total**| **25**|
+| Medium   | 9     |
+| Low      | 8     |
+| **Total**| **31**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.

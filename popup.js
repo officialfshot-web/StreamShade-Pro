@@ -36,8 +36,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     autoDetectOutro: document.getElementById('autoDetectOutro'),
     autoLearnIntro: document.getElementById('autoLearnIntro'),
     showIdBadge: document.getElementById('showIdBadge'),
+    showSection: document.getElementById('showSection'),
     episodeInfoRow: document.getElementById('episodeInfoRow'),
+    episodeInfoNav: document.getElementById('episodeInfoNav'),
     episodeInfoTitle: document.getElementById('episodeInfoTitle'),
+    episodeInfoSep: document.getElementById('episodeInfoSep'),
     episodeInfoSub: document.getElementById('episodeInfoSub'),
     prevEpisodeBtn: document.getElementById('prevEpisodeBtn'),
     nextEpisodeSmallBtn: document.getElementById('nextEpisodeSmallBtn'),
@@ -111,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updateShowUI() {
     if (state.showId) {
+      els.showSection.classList.remove('no-show');
       els.showIdBadge.textContent = `#${state.showId}`;
       els.showIntroStartSeconds.disabled = false;
       els.showIntroSeconds.disabled = false;
@@ -125,13 +129,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const ep = state.episodeInfo;
       if (ep && ep.season && ep.episode) {
-        els.episodeInfoRow.style.display = 'flex';
+        els.episodeInfoRow.style.display = 'block';
+        els.episodeInfoNav.style.display = 'flex';
         els.episodeInfoTitle.textContent = `S${ep.season}E${ep.episode}: ${ep.title || 'Episode ' + ep.episode}`;
         els.episodeInfoSub.textContent = ep.showTitle || '';
+        els.episodeInfoSep.style.display = ep.showTitle ? 'inline' : 'none';
       } else {
         els.episodeInfoRow.style.display = 'none';
+        els.episodeInfoNav.style.display = 'none';
       }
     } else {
+      els.showSection.classList.add('no-show');
       els.showIdBadge.textContent = 'no show';
       els.showIntroStartSeconds.value = '';
       els.showIntroStartSeconds.disabled = true;
@@ -141,6 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       els.showSpeed.disabled = true;
       els.clearShowIntroBtn.disabled = true;
       els.episodeInfoRow.style.display = 'none';
+      els.episodeInfoNav.style.display = 'none';
     }
   }
 
@@ -378,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     els.clearSegmentsBtn.addEventListener('click', () => {
       sendToContent({ action: 'clearSegments' }, () => {
-        els.segmentsList.innerHTML = '<div class="empty-state">Segments cleared</div>';
+        els.segmentsList.innerHTML = '<div class="empty">Segments cleared</div>';
         loadStats();
       });
     });

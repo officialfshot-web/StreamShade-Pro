@@ -1,0 +1,12 @@
+{
+  "name": "streamshade-pro-image-tool",
+  "version": "1.0.0",
+  "description": "Gemini image generation helper for StreamShade Pro assets",
+  "scripts": {
+    "generate": "node scripts/generate-images.js",
+    "generate:icons": "node scripts/generate-images.js --icons"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.33.5"
+  }
+}

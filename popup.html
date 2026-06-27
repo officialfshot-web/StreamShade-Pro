@@ -5,190 +5,357 @@
   <title>StreamShade Pro</title>
   <style>
     :root {
-      --bg: #0a0a0c;
-      --surface: rgba(255,255,255,0.055);
-      --surface-elevated: rgba(255,255,255,0.095);
-      --surface-hover: rgba(255,255,255,0.12);
-      --text: #ffffff;
-      --text2: rgba(255,255,255,0.62);
-      --text3: rgba(255,255,255,0.38);
-      --sep: rgba(255,255,255,0.07);
-      --accent: #0A84FF;
-      --accent-soft: rgba(10,132,255,0.16);
-      --good: #30d158;
-      --bad: #ff453a;
-      --ring: 0 0 0 3px rgba(10,132,255,0.28);
+      --bg: #f8fafc;
+      --bg-gradient: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      --surface: rgba(255,255,255,0.78);
+      --surface-elevated: #ffffff;
+      --surface-hover: #ffffff;
+      --text: #111318;
+      --text2: #475569;
+      --text3: #94a3b8;
+      --sep: rgba(148,163,184,0.18);
+      --accent: #0ea5e9;
+      --accent-2: #06b6d4;
+      --accent-soft: rgba(14,165,233,0.08);
+      --good: #16a34a;
+      --bad: #dc2626;
+      --ring: 0 0 0 3px rgba(14,165,233,0.18);
+      --shadow-sm: 0 1px 2px rgba(17,19,24,0.04);
+      --shadow: 0 3px 10px rgba(17,19,24,0.06);
+      --shadow-lg: 0 12px 28px rgba(17,19,24,0.10);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --radius-lg: 24px;
+      --glow: 0 6px 20px rgba(14,165,233,0.14);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1115;
+        --bg-gradient: linear-gradient(180deg, #0f1115 0%, #151821 100%);
+        --surface: rgba(255,255,255,0.07);
+        --surface-elevated: rgba(255,255,255,0.12);
+        --surface-hover: rgba(255,255,255,0.18);
+        --text: #f5f6f8;
+        --text2: #b0b5c4;
+        --text3: #6f7689;
+        --sep: rgba(255,255,255,0.08);
+        --glow: 0 6px 20px rgba(6,182,212,0.20);
+      }
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       width: 360px;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-gradient);
       color: var(--text);
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     /* ─── HEADER ─── */
     .header {
-      padding: 14px 16px 12px;
+      padding: 20px 16px 18px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--sep);
+      gap: 14px;
+      background: transparent;
     }
 
     .logo {
-      width: 32px; height: 32px;
-      border-radius: 9px;
-      background: var(--surface-elevated);
-      border: 1px solid var(--sep);
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
       display: grid; place-items: center;
       flex-shrink: 0;
+      box-shadow: var(--glow);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
     }
-    .logo svg { display: block; stroke: var(--accent); fill: none; }
+    .logo:hover { transform: scale(1.06); }
+    .logo svg { display: block; stroke: white; fill: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
 
     .header-text { flex: 1; min-width: 0; }
-    .brand-name { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; line-height: 1.1; }
-    .brand-sub  { font-size: 11px; color: var(--text3); margin-top: 1px; letter-spacing: 0; }
+    .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
+    .brand-sub  { font-size: 11px; color: var(--text3); margin-top: 2px; font-weight: 500; }
 
     .time-pill {
-      font-size: 11px; font-weight: 500;
-      padding: 4px 9px; border-radius: 999px;
-      background: var(--surface);
+      font-size: 11px; font-weight: 700;
+      padding: 5px 10px; border-radius: 999px;
+      background: var(--bg);
       color: var(--text2);
       border: 1px solid var(--sep);
-      letter-spacing: -0.1px;
       flex-shrink: 0;
     }
 
     /* ─── SEGMENTED TABS ─── */
     .tabs {
       display: flex;
-      padding: 10px 14px;
+      padding: 5px;
       gap: 4px;
-      background: var(--surface);
-      border: 1px solid var(--sep);
-      border-radius: 10px;
-      margin: 8px 14px 6px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 999px;
+      margin: 8px 14px 16px;
+      box-shadow: var(--shadow-sm);
     }
     .tab {
-      flex: 1; padding: 6px 0;
-      font-size: 12px; font-weight: 500;
+      flex: 1; padding: 7px 0;
+      font-size: 12px; font-weight: 600;
       color: var(--text2);
       text-align: center; cursor: pointer;
       border: none; background: transparent;
-      border-radius: 7px;
-      transition: color 180ms, background 180ms;
+      border-radius: 999px;
+      transition: color 200ms, background 200ms, transform 120ms;
       user-select: none; letter-spacing: -0.1px;
     }
     .tab:hover { color: var(--text); }
-    .tab.active { color: #fff; background: var(--surface-elevated); font-weight: 600; }
+    .tab:active { transform: scale(0.96); }
+    .tab.active { color: #fff; background: var(--accent); box-shadow: var(--glow); }
 
     /* ─── SCROLL PANE ─── */
-    .pane { display: none; padding: 6px 14px 14px; overflow-y: auto; max-height: 440px; }
-    .pane.active { display: block; }
+    .pane { display: none; padding: 8px 14px 14px; overflow-y: auto; max-height: 380px; }
+    .pane.active { display: block; animation: fadeIn 0.28s cubic-bezier(0.32,0.72,0,1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ─── ACTION ROW ─── */
     .action-row {
       display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 6px; margin-bottom: 12px;
+      gap: 10px; margin-bottom: 18px;
     }
     .act {
       display: flex; flex-direction: column;
-      align-items: center; gap: 5px;
-      padding: 10px 3px 9px;
-      border-radius: 12px; border: 1px solid var(--sep);
-      cursor: pointer; color: var(--text2);
-      background: var(--surface);
-      font-size: 10px; font-weight: 500;
-      font-family: inherit; letter-spacing: -0.1px;
-      transition: transform 120ms, background 120ms, color 120ms, border-color 120ms;
+      align-items: center; gap: 8px;
+      padding: 14px 4px 12px;
+      border-radius: 16px;
+      cursor: pointer; color: var(--text);
+      background: rgba(255,255,255,0.55);
+      font-size: 11px; font-weight: 700;
+      font-family: inherit; letter-spacing: -0.2px;
+      transition: transform 160ms, background 180ms, color 180ms, box-shadow 180ms;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
-    .act:hover  { background: var(--surface-hover); color: var(--text); border-color: rgba(255,255,255,0.14); }
+    .act:hover  { background: #ffffff; box-shadow: var(--shadow); transform: translateY(-2px); }
     .act:active { transform: scale(0.96); }
-    .act:disabled { opacity: 0.32; cursor: not-allowed; transform: none; border-color: transparent; }
-    .act.is-success { color: var(--good); border-color: rgba(48,209,88,0.35); background: rgba(48,209,88,0.10); }
+    .act:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+    .act.is-success { color: var(--good); background: rgba(22,163,74,0.08); }
 
-    .act-ico { display: flex; }
-    .act-ico svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .act-lbl { line-height: 1; }
+    .act-ico {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 14px;
+      flex-shrink: 0;
+      transition: transform 180ms, background 180ms;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(14,165,233,0.22);
+    }
+    .act:hover .act-ico { transform: scale(1.08); }
+    .act-ico svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)); }
+    .act-lbl { line-height: 1.2; }
+    .act-sub { display: none; }
+
+    /* ─── CURRENT SHOW HERO CARD ─── */
+    .show-card {
+      background: linear-gradient(135deg, rgba(14,165,233,0.10) 0%, rgba(6,182,212,0.06) 100%);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.6) inset;
+      position: relative;
+      overflow: hidden;
+    }
+    .show-card::before {
+      content: '';
+      position: absolute; top: -50%; right: -30%;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(14,165,233,0.14) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .show-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 16px;
+      position: relative; z-index: 1;
+    }
+    .show-avatar {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+      box-shadow: var(--glow);
+    }
+    .show-avatar svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.12)); }
+
+    .show-info { flex: 1; min-width: 0; }
+    .show-label { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+    .show-title { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; line-height: 1.15; }
+    .show-episode { font-size: 12px; color: var(--text2); margin-top: 3px; font-weight: 500; }
+
+    .show-nav { display: flex; gap: 5px; flex-shrink: 0; }
+    .show-nav button {
+      width: 28px; height: 28px;
+      padding: 0;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 13px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--sep);
+    }
+    .show-nav button:hover { background: #ffffff; }
+
+    .show-fields {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+      position: relative; z-index: 1;
+    }
+    .show-field {
+      display: flex; flex-direction: column;
+      gap: 5px;
+    }
+    .show-field label {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .show-input {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .show-input input {
+      width: 100%;
+      padding: 8px 22px 8px 6px;
+      text-align: center;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--sep);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 140ms, box-shadow 140ms, background 140ms;
+    }
+    .show-input input:focus { border-color: var(--accent); background: #ffffff; box-shadow: var(--ring); }
+    .show-input input:disabled { opacity: 0.45; cursor: not-allowed; background: rgba(255,255,255,0.4); }
+    .show-unit {
+      position: absolute;
+      right: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text3);
+      pointer-events: none;
+    }
+
+    .show-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative; z-index: 1;
+    }
+    .show-learn-label {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .show-footer .ghost { color: var(--text3); font-weight: 600; }
+    .show-footer .ghost:hover { color: var(--accent); }
+
+    .show-card.no-show { background: rgba(255,255,255,0.42); }
+    .show-card.no-show .show-avatar { background: linear-gradient(135deg, #cbd5e1, #94a3b8); box-shadow: none; }
+    .show-card.no-show .show-title { color: var(--text3); font-weight: 700; }
+    .show-card.no-show .show-label { color: var(--text3); }
 
     /* ─── iOS-STYLE LIST GROUP ─── */
     .group {
-      background: var(--surface);
-      border-radius: 16px;
+      background: rgba(255,255,255,0.55);
+      border-radius: var(--radius);
       overflow: hidden;
-      margin-bottom: 10px;
-      border: 1px solid var(--sep);
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     .group:last-child { margin-bottom: 0; }
 
     .group-header {
-      font-size: 12px; font-weight: 500;
+      font-size: 11px; font-weight: 700;
       color: var(--text3);
-      letter-spacing: 0.1px;
-      padding: 0 14px 6px 14px;
-      margin-top: 16px;
+      letter-spacing: 0.6px;
+      padding: 0 14px 7px 14px;
+      margin-top: 22px;
+      text-transform: uppercase;
     }
     .group-header:first-child { margin-top: 0; }
 
     .row {
       display: flex; align-items: center;
       justify-content: space-between;
-      padding: 12px 14px; gap: 12px;
-      border-bottom: 1px solid var(--sep);
+      padding: 13px 14px; gap: 12px;
       min-height: 48px;
+      transition: background-color 0.15s ease;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
     }
     .row:last-child { border-bottom: none; }
+    .row:hover { background: rgba(14,165,233,0.04); }
 
     .row-left { flex: 1; min-width: 0; }
-    .row-label { font-size: 13px; font-weight: 400; color: var(--text); line-height: 1.2; }
-    .row-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; line-height: 1.3; }
+    .row-label { font-size: 14.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
+    .row-sub   { font-size: 11.5px; color: var(--text3); margin-top: 2px; line-height: 1.35; font-weight: 500; }
     .row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
     .val-badge {
-      font-size: 13px; font-weight: 400; color: var(--text2);
+      font-size: 13px; font-weight: 500; color: var(--text2);
       font-variant-numeric: tabular-nums;
     }
 
     /* ─── TOGGLE (iOS style) ─── */
-    .tog { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+    .tog { position: relative; width: 46px; height: 28px; flex-shrink: 0; }
     .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
     .tog-track {
       position: absolute; inset: 0;
       border-radius: 999px;
-      background: rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.12);
       transition: background 200ms;
     }
     .tog-thumb {
       position: absolute;
       top: 3px; left: 3px;
-      width: 20px; height: 20px;
+      width: 22px; height: 22px;
       border-radius: 50%;
       background: #fff;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-      transition: transform 200ms cubic-bezier(.4,0,.2,1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      transition: transform 220ms cubic-bezier(.4,0,.2,1);
     }
     .tog input:checked ~ .tog-track { background: var(--accent); }
     .tog input:checked ~ .tog-thumb { transform: translateX(18px); }
 
     /* ─── NUMBER INPUT ─── */
     input[type="number"], input[type="text"], input[type="time"] {
-      background: rgba(0,0,0,0.18);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.04);
+      border: 1px solid var(--sep);
       color: var(--text);
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 13px; font-family: inherit;
       outline: none;
-      transition: border-color 140ms, box-shadow 140ms;
+      transition: border-color 140ms, box-shadow 140ms, background 140ms;
     }
-    input[type="number"] { width: 54px; padding: 5px 4px; text-align: center; }
+    input[type="number"] { width: 54px; padding: 6px 4px; text-align: center; }
     input[type="text"]   { flex: 1; padding: 8px 10px; }
     input[type="time"]   { padding: 5px 8px; }
-    input:focus { border-color: var(--accent); box-shadow: var(--ring); }
+    input:focus { border-color: var(--accent); background: rgba(99,102,241,0.04); box-shadow: var(--ring); }
 
     .input-row { display: flex; gap: 8px; margin-top: 8px; }
 
@@ -198,42 +365,44 @@
       border: 1px solid var(--sep);
       color: var(--text); padding: 8px 14px;
       border-radius: 10px; cursor: pointer;
-      font-size: 12px; font-weight: 500;
+      font-size: 12px; font-weight: 600;
       font-family: inherit;
-      transition: background 130ms, transform 100ms, color 130ms;
+      transition: background 150ms, transform 100ms, color 150ms, box-shadow 150ms;
       white-space: nowrap;
+      box-shadow: var(--shadow-sm);
     }
-    button:hover  { background: var(--surface-hover); }
-    button:active { transform: scale(0.98); }
+    button:hover  { background: var(--surface-hover); box-shadow: var(--shadow); }
+    button:active { transform: scale(0.97); }
     button.sm  { padding: 6px 12px; font-size: 11.5px; }
-    button.ghost { background: transparent; border-color: transparent; color: var(--accent); padding: 6px 0; }
-    button.ghost:hover { background: transparent; color: #5faaff; }
-    button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    button.ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--accent); padding: 6px 0; }
+    button.ghost:hover { background: transparent; color: #4f46e5; }
+    button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
     /* ─── SPEED STRIP ─── */
     .speed-strip { display: flex; gap: 6px; }
     .spd {
       flex: 1; padding: 8px 4px;
       border-radius: 10px; border: 1px solid var(--sep);
-      background: rgba(0,0,0,0.18);
-      font-size: 12.5px; font-weight: 500;
+      background: rgba(0,0,0,0.04);
+      font-size: 12.5px; font-weight: 600;
       color: var(--text2); cursor: pointer;
       font-family: inherit;
-      transition: background 130ms, color 130ms, border-color 130ms;
+      transition: background 150ms, color 150ms, border-color 150ms, transform 100ms;
       text-align: center;
     }
-    .spd:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .spd:hover { background: rgba(99,102,241,0.08); color: var(--text); border-color: rgba(99,102,241,0.25); }
+    .spd:active { transform: scale(0.96); }
     .spd.active {
       background: var(--accent-soft);
-      border-color: rgba(10,132,255,0.35);
-      color: var(--text);
+      border-color: rgba(99,102,241,0.35);
+      color: var(--accent);
     }
 
     /* ─── PILL BADGE (show id) ─── */
     .show-pill {
-      font-size: 10.5px; font-weight: 500;
-      padding: 2px 8px; border-radius: 999px;
-      background: rgba(0,0,0,0.20);
+      font-size: 10.5px; font-weight: 600;
+      padding: 3px 9px; border-radius: 999px;
+      background: var(--surface-elevated);
       color: var(--text2); flex-shrink: 0;
       border: 1px solid var(--sep);
     }
@@ -244,39 +413,46 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 10px 14px; border-bottom: 1px solid var(--sep);
       gap: 10px;
+      transition: background-color 0.15s ease;
     }
     .seg:last-child { border-bottom: none; }
-    .seg-name { font-size: 12.5px; font-weight: 400; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .seg:hover { background: rgba(99,102,241,0.03); }
+    .seg-name { font-size: 12.5px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .seg-time { font-size: 11px; color: var(--text3); flex-shrink: 0; font-variant-numeric: tabular-nums; }
 
     /* ─── STATS ─── */
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .stat {
-      background: var(--surface); border-radius: 16px;
-      padding: 14px 14px 12px;
+      background: var(--surface); border-radius: var(--radius);
+      padding: 16px 14px 14px;
       border: 1px solid var(--sep);
+      box-shadow: var(--shadow-sm);
+      transition: transform 180ms, box-shadow 180ms;
     }
+    .stat:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
     .stat-ico { margin-bottom: 10px; }
-    .stat-ico svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-    .stat-num { font-size: 30px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
-    .stat-lbl { font-size: 10.5px; color: var(--text3); margin-top: 3px; font-weight: 500; }
+    .stat-ico svg { width: 20px; height: 20px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .stat-num { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+    .stat-lbl { font-size: 11px; color: var(--text3); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
 
     /* ─── SHORTCUTS ─── */
     .sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .sc {
       display: flex; align-items: center; gap: 8px;
       padding: 9px 11px; border-radius: 10px;
-      background: rgba(0,0,0,0.18);
+      background: rgba(0,0,0,0.04);
       border: 1px solid var(--sep);
       font-size: 11.5px; color: var(--text2);
+      font-weight: 500;
     }
     kbd {
       font-family: ui-monospace, 'SF Mono', Menlo, monospace;
       font-size: 10px; padding: 2px 6px;
-      background: rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--surface-elevated);
+      border: 1px solid var(--sep);
       border-radius: 5px; color: var(--text2);
       min-width: 46px; text-align: center; flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
     }
 
     /* ─── OUTRO SECTION ─── */
@@ -297,10 +473,10 @@
       padding-right: 58px;
       text-align: center;
       font-size: 15px;
-      font-weight: 500;
+      font-weight: 600;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.3px;
-      background: rgba(0,0,0,0.18);
+      background: rgba(0,0,0,0.04);
       border: 1px solid var(--sep);
       border-radius: 12px;
       color: var(--text);
@@ -313,19 +489,19 @@
       position: absolute;
       right: 10px;
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.4px;
       padding: 3px 7px;
       border-radius: 999px;
-      background: rgba(0,0,0,0.20);
+      background: rgba(0,0,0,0.06);
       color: var(--text2);
       border: 1px solid var(--sep);
     }
     .outro-badge.manual {
       background: var(--accent-soft);
       color: var(--accent);
-      border-color: rgba(10,132,255,0.30);
+      border-color: rgba(99,102,241,0.30);
     }
     .outro-actions {
       display: grid;
@@ -340,16 +516,19 @@
       background: var(--surface-elevated);
       border: 1px solid var(--sep);
       color: var(--text);
-      transition: all 140ms;
+      transition: all 150ms;
+      box-shadow: var(--shadow-sm);
     }
     .outro-btn:hover {
       background: var(--surface-hover);
-      border-color: rgba(255,255,255,0.14);
+      border-color: rgba(99,102,241,0.25);
+      box-shadow: var(--shadow);
     }
     .outro-btn-secondary {
       background: transparent;
       border-color: var(--sep);
       color: var(--text2);
+      box-shadow: none;
     }
     .outro-btn-secondary:hover {
       background: var(--surface);
@@ -359,17 +538,18 @@
     /* ─── FOOTER ─── */
     .footer {
       display: flex; gap: 8px;
-      padding: 10px 14px 11px;
-      border-top: 1px solid var(--sep);
+      padding: 12px 14px 14px;
+      background: transparent;
     }
-    .footer button { flex: 1; padding: 8px 6px; font-size: 11.5px; border-radius: 10px; }
-    .btn-export { color: var(--text); background: var(--surface-elevated); }
-    .btn-export:hover { background: var(--surface-hover); }
+    .footer button { flex: 1; padding: 9px 6px; font-size: 12px; font-weight: 600; border-radius: 12px; background: rgba(255,255,255,0.6); }
+    .footer button:hover { background: #ffffff; }
+    .btn-export { color: var(--text); background: rgba(255,255,255,0.6); }
+    .btn-export:hover { background: #ffffff; }
 
     /* ─── STATUS ─── */
     .statusbar {
       display: flex; align-items: center; gap: 7px;
-      padding: 7px 14px 11px;
+      padding: 6px 14px 12px;
       font-size: 11px; color: var(--text3);
     }
     .dot {
@@ -377,14 +557,15 @@
       background: var(--text3); flex-shrink: 0;
       transition: background 300ms, box-shadow 300ms;
     }
-    .dot.active { background: var(--good); box-shadow: 0 0 0 3px rgba(48,209,88,0.20); }
-    .dot.error  { background: var(--bad);  box-shadow: 0 0 0 3px rgba(255,69,58,0.20); }
+    .dot.active { background: var(--good); box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+    .dot.error  { background: var(--bad);  box-shadow: 0 0 0 3px rgba(239,68,68,0.18); }
 
     .empty { text-align: center; padding: 16px 12px; color: var(--text3); font-size: 12px; line-height: 1.5; }
 
-    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb { background: var(--sep); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
@@ -416,6 +597,57 @@
   <!-- ═══ MAIN ═══ -->
   <div id="main" class="pane active">
 
+    <!-- CURRENT SHOW -->
+    <div class="show-card" id="showSection">
+      <div class="show-header">
+        <div class="show-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <div class="show-info">
+          <div class="show-label">Current Show</div>
+          <div class="show-title" id="showIdBadge">No show</div>
+          <div class="show-episode" id="episodeInfoRow" style="display:none;">
+            <span id="episodeInfoTitle">—</span><span id="episodeInfoSep" style="display:none;"> · </span><span id="episodeInfoSub">—</span>
+          </div>
+        </div>
+        <div class="show-nav" id="episodeInfoNav" style="display:none;">
+          <button id="prevEpisodeBtn" class="sm" style="padding:5px 8px;" title="Previous episode">←</button>
+          <button id="nextEpisodeSmallBtn" class="sm" style="padding:5px 8px;" title="Next episode">→</button>
+        </div>
+      </div>
+      <div class="show-fields">
+        <div class="show-field">
+          <label>Intro start</label>
+          <div class="show-input">
+            <input type="number" id="showIntroStartSeconds" min="0" max="600" placeholder="—">
+            <span class="show-unit">s</span>
+          </div>
+        </div>
+        <div class="show-field">
+          <label>Intro end</label>
+          <div class="show-input">
+            <input type="number" id="showIntroSeconds" min="0" max="600" placeholder="—">
+            <span class="show-unit">s</span>
+          </div>
+        </div>
+        <div class="show-field">
+          <label>Speed</label>
+          <div class="show-input">
+            <input type="number" id="showSpeed" min="0.25" max="3" step="0.25" placeholder="—">
+            <span class="show-unit">×</span>
+          </div>
+        </div>
+      </div>
+      <div class="show-footer">
+        <label class="tog"><input type="checkbox" id="autoLearnIntro" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+        <span class="show-learn-label">Auto-learn from Skip Intro</span>
+        <button id="clearShowIntroBtn" class="ghost sm">Reset</button>
+      </div>
+    </div>
+
     <div class="action-row">
       <button id="skipIntroNowBtn" class="act act-intro">
         <span class="act-ico"><svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></span>
@@ -429,7 +661,7 @@
         <span class="act-ico"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></span>
         <span class="act-lbl">Skip Outro</span>
       </button>
-      <button id="nextEpisodeBtn" class="act act-outro">
+      <button id="nextEpisodeBtn" class="act act-next">
         <span class="act-ico"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/><line x1="22" y1="5" x2="22" y2="19"/></svg></span>
         <span class="act-lbl">Next Ep</span>
       </button>
@@ -465,66 +697,6 @@
           <div class="row-sub">Jump to next episode</div>
         </div>
         <label class="tog"><input type="checkbox" id="autoSkip" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-    </div>
-
-    <p class="group-header">Current Show</p>
-    <div class="group" id="showSection">
-      <div class="row">
-        <div class="row-left">
-          <div class="row-label">Show</div>
-        </div>
-        <span class="show-pill" id="showIdBadge">No show</span>
-      </div>
-      <div class="row" id="episodeInfoRow" style="display:none;">
-        <div class="row-left" style="min-width:0; overflow:hidden;">
-          <div class="row-label" id="episodeInfoTitle" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">—</div>
-          <div class="row-sub" id="episodeInfoSub" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">—</div>
-        </div>
-        <div class="row-right" style="gap:4px;">
-          <button id="prevEpisodeBtn" class="sm" style="padding:5px 8px;" title="Previous episode">←</button>
-          <button id="nextEpisodeSmallBtn" class="sm" style="padding:5px 8px;" title="Next episode">→</button>
-        </div>
-      </div>
-      <div class="row">
-        <div class="row-left">
-          <div class="row-label">Intro starts at</div>
-          <div class="row-sub">Leave blank for start of video</div>
-        </div>
-        <div class="row-right">
-          <input type="number" id="showIntroStartSeconds" min="0" max="600" placeholder="—" style="width:54px;">
-          <span class="val-badge">s</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="row-left">
-          <div class="row-label">Intro ends at</div>
-          <div class="row-sub">Overrides default · auto-learns</div>
-        </div>
-        <div class="row-right">
-          <input type="number" id="showIntroSeconds" min="0" max="600" placeholder="—" style="width:54px;">
-          <span class="val-badge">s</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="row-left">
-          <div class="row-label">Speed</div>
-          <div class="row-sub">Per-show default speed</div>
-        </div>
-        <div class="row-right">
-          <input type="number" id="showSpeed" min="0.25" max="3" step="0.25" placeholder="—" style="width:54px;">
-          <span class="val-badge">×</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="row-left">
-          <div class="row-label">Auto-learn</div>
-          <div class="row-sub">Saves when you press Skip Intro</div>
-        </div>
-        <label class="tog"><input type="checkbox" id="autoLearnIntro" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-      <div class="row">
-        <button id="clearShowIntroBtn" class="ghost sm" style="width:100%;">Reset this show to default</button>
       </div>
     </div>
 
