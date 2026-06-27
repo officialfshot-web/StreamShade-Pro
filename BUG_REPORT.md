@@ -234,6 +234,12 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: When returning to a show, users had to click through seasons and episodes to find where they left off. LookMovie's own continue-watching was unreliable.
 - **Fix**: Added an `Auto-Resume` feature. When an episode is played, the extension stores the show ID, season, episode, and episode hash in `localStorage`. On the next visit to the show page without a specific episode selected, it automatically redirects to the last watched episode and shows a notification. Added a toggle in the Advanced tab.
 
+## Bug #39 — Audio fingerprint failed to record or match intros reliably
+- **Severity**: Medium
+- **File**: `content.js`
+- **Problem**: The audio fingerprint was not saved when the user clicked Skip Intro because the Web Audio API context was suspended until a user gesture, leaving the audio buffer empty. The matching also used a strict absolute threshold, so small volume differences between episodes broke matches.
+- **Fix**: Added user-gesture listeners to resume the audio context as soon as the user interacts with the page, added a retry delay when the buffer is empty, resumed the context when Skip Intro is triggered from the popup, and switched fingerprint matching to a relative 30% per-band tolerance so volume differences are handled.
+
 ---
 
 ## Summary
@@ -241,8 +247,8 @@ All bugs identified and fixed during the review sessions.
 | Severity | Count |
 |----------|-------|
 | High     | 15    |
-| Medium   | 13    |
+| Medium   | 14    |
 | Low      | 11    |
-| **Total**| **39**|
+| **Total**| **40**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.

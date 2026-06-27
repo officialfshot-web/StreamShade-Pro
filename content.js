@@ -764,6 +764,17 @@
       audioFingerprintBuffer = [];
       startAudioCapture();
       console.log('[StreamShade] Audio fingerprinting ready');
+
+      // Resume on the first user gesture so the buffer is already filling
+      // when the user later clicks Skip Intro.
+      const resumeOnGesture = () => {
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume().catch(() => {});
+        }
+      };
+      ['click', 'keydown', 'touchstart'].forEach(evt => {
+        document.addEventListener(evt, resumeOnGesture, { once: true, capture: true });
+      });
     } catch (err) {
       console.error('[StreamShade] Audio fingerprinting setup failed:', err);
     }
@@ -844,30 +855,24 @@
   }
 
   function fingerprintMatch(a, b) {
-    return fingerprintDistance(a, b) < FP_MATCH_THRESHOLD;
+    // Compare each band with a relative tolerance so volume differences
+    // between episodes don't break the match.
+    let matches = 0;
+    for (let i = 0; i < FP_BANDS; i++) {
+      const max = Math.max(a[i], b[i], 1);
+      if (Math.abs(a[i] - b[i]) / max <= 0.30) {
+        matches++;
+      }
+    }
+    return matches / FP_BANDS >= FP_MATCH_RATIO;
   }
 
-  function recordIntroFingerprint() {
-    if (!settings.audioFingerprintIntro || !currentShowId || !videoElement) return;
-    if (!audioContext || audioFingerprintBuffer.length === 0) {
-      showNotification('🎵 Audio not ready yet', 1500);
-      return;
-    }
-
-    const introStart = getEffectiveIntroStartSeconds();
-    const currentTime = videoElement.currentTime;
-    if (currentTime <= introStart + 1) return;
-
-    // Resume audio context in case it was suspended (browser autoplay policy).
-    if (audioContext.state === 'suspended') {
-      audioContext.resume().catch(() => {});
-    }
-
+  function recordIntroFingerprintCore(introStart, currentTime) {
     const samples = audioFingerprintBuffer
       .filter(entry => entry.time >= introStart && entry.time <= currentTime)
       .map(entry => entry.fingerprint);
 
-    if (samples.length < 10) return;
+    if (samples.length < 10) return false;
 
     if (!settings.perShowSettings[currentShowId]) {
       settings.perShowSettings[currentShowId] = {};
@@ -881,6 +886,35 @@
     saveSettings();
     console.log('[StreamShade] Recorded intro fingerprint for show', currentShowId, samples.length, 'samples');
     showNotification('🎵 Intro signature saved', 2000);
+    return true;
+  }
+
+  function recordIntroFingerprint() {
+    if (!settings.audioFingerprintIntro || !currentShowId || !videoElement) return;
+    if (!audioContext) {
+      showNotification('🎵 Audio fingerprinting not active', 1500);
+      return;
+    }
+
+    const introStart = getEffectiveIntroStartSeconds();
+    const currentTime = videoElement.currentTime;
+    if (currentTime <= introStart + 1) return;
+
+    // Resume audio context in case it was suspended (browser autoplay policy).
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+
+    // If the buffer is empty, wait a moment for samples to come in after resume.
+    if (audioFingerprintBuffer.length === 0) {
+      showNotification('🎵 Audio not ready — recording intro in 2s', 2000);
+      setTimeout(() => {
+        recordIntroFingerprintCore(introStart, videoElement.currentTime);
+      }, 2000);
+      return;
+    }
+
+    recordIntroFingerprintCore(introStart, currentTime);
   }
 
   function checkForIntroFingerprintMatch() {
@@ -1986,6 +2020,9 @@
         if (!videoElement) {
           sendResponse({ success: false, error: 'No video detected' });
           break;
+        }
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume().catch(() => {});
         }
         skipIntro(true);
         sendResponse({ success: true });
