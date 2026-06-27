@@ -151,12 +151,15 @@
       width: 38px; height: 38px; border-radius: 14px;
       flex-shrink: 0;
       transition: transform 180ms, background 180ms;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
       color: #fff;
-      box-shadow: 0 4px 12px rgba(14,165,233,0.22);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .act:hover .act-ico { transform: scale(1.08); }
     .act-ico svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)); }
+    .act-intro .act-ico { background: linear-gradient(135deg, #0ea5e9, #06b6d4); box-shadow: 0 4px 12px rgba(14,165,233,0.22); }
+    .act-full .act-ico  { background: linear-gradient(135deg, #8b5cf6, #ec4899); box-shadow: 0 4px 12px rgba(139,92,246,0.22); }
+    .act-outro .act-ico { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 4px 12px rgba(245,158,11,0.22); }
+    .act-next .act-ico  { background: linear-gradient(135deg, #10b981, #06b6d4); box-shadow: 0 4px 12px rgba(16,185,129,0.22); }
     .act-lbl { line-height: 1.2; }
     .act-sub { display: none; }
 
@@ -272,11 +275,6 @@
     }
     .show-footer .ghost { color: var(--text3); font-weight: 600; }
     .show-footer .ghost:hover { color: var(--accent); }
-
-    .show-card.no-show { background: rgba(255,255,255,0.42); }
-    .show-card.no-show .show-avatar { background: linear-gradient(135deg, #cbd5e1, #94a3b8); box-shadow: none; }
-    .show-card.no-show .show-title { color: var(--text3); font-weight: 700; }
-    .show-card.no-show .show-label { color: var(--text3); }
 
     /* ─── iOS-STYLE LIST GROUP ─── */
     .group {

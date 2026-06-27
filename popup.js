@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     autoDetectOutro: document.getElementById('autoDetectOutro'),
     autoLearnIntro: document.getElementById('autoLearnIntro'),
     showIdBadge: document.getElementById('showIdBadge'),
-    showSection: document.getElementById('showSection'),
     episodeInfoRow: document.getElementById('episodeInfoRow'),
     episodeInfoNav: document.getElementById('episodeInfoNav'),
     episodeInfoTitle: document.getElementById('episodeInfoTitle'),
@@ -114,7 +113,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updateShowUI() {
     if (state.showId) {
-      els.showSection.classList.remove('no-show');
       els.showIdBadge.textContent = `#${state.showId}`;
       els.showIntroStartSeconds.disabled = false;
       els.showIntroSeconds.disabled = false;
@@ -139,7 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         els.episodeInfoNav.style.display = 'none';
       }
     } else {
-      els.showSection.classList.add('no-show');
       els.showIdBadge.textContent = 'no show';
       els.showIntroStartSeconds.value = '';
       els.showIntroStartSeconds.disabled = true;

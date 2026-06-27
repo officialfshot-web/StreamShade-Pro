@@ -168,9 +168,9 @@ All bugs identified and fixed during the review sessions.
 
 ## Bug #28 — Current Show inputs did not look disabled when no show was detected
 - **Severity**: Low
-- **File**: `popup.html`, `popup.js`
+- **File**: `popup.html`
 - **Problem**: The Intro start/end and Speed inputs were programmatically disabled when no show was active, but visually they looked identical to enabled inputs, causing confusion.
-- **Fix**: Added `:disabled` CSS styling and a `no-show` class on the card so the disabled state is clearly visible.
+- **Fix**: Added `:disabled` CSS styling so the disabled state is clearly visible.
 
 ## Bug #29 — Missing default response for unknown message actions
 - **Severity**: Medium
