@@ -996,24 +996,28 @@
     const currentTime = videoElement.currentTime;
     const introStart = getEffectiveIntroStartSeconds();
     const introDuration = getEffectiveIntroDuration();
-    const introEnd = introStart + introDuration;
+    const introEnd = getEffectiveIntroEnd();
 
     // Auto: only act when the playhead is inside the intro window [introStart, introEnd).
     // Manual (force): if inside or before the window, jump to introEnd.
-    //   If AFTER the window, auto-learn this position as the new intro start
-    //   (the user is telling us the intro actually starts here on this show).
+    //   If AFTER the window, update the learned intro end or auto-learn the intro start.
     let skipTime = null;
     if (currentTime >= introStart - 0.5 && currentTime < introEnd) {
       skipTime = introEnd;
     } else if (force && currentTime < introStart) {
       skipTime = introEnd;
     } else if (force && currentTime >= introEnd && currentTime < duration * 0.5) {
-      // User pressed Skip Intro at a position past our configured window.
-      // Learn this as the new intro START for this show, skip forward by duration.
-      if (settings.autoLearnIntro && currentShowId) {
+      // User pressed Skip Intro past the configured window. If we already have a
+      // learned intro end, extend it to the current click time. Otherwise fall
+      // back to the existing auto-learn behavior.
+      if (currentShowId) {
         if (!settings.perShowSettings[currentShowId]) settings.perShowSettings[currentShowId] = {};
-        settings.perShowSettings[currentShowId].introStartSeconds = Math.round(currentTime);
-        console.log(`[StreamShade] Learned intro start for show ${currentShowId}: ${Math.round(currentTime)}s`);
+        if (settings.perShowSettings[currentShowId].introEndSeconds) {
+          console.log(`[StreamShade] Extended intro end for show ${currentShowId}: ${Math.round(currentTime)}s`);
+        } else if (settings.autoLearnIntro) {
+          settings.perShowSettings[currentShowId].introStartSeconds = Math.round(currentTime);
+          console.log(`[StreamShade] Learned intro start for show ${currentShowId}: ${Math.round(currentTime)}s`);
+        }
       }
       skipTime = currentTime + introDuration;
     }
@@ -1030,12 +1034,17 @@
 
     // When the user manually skips an intro, remember the exact time they
     // pressed the button so future episodes of this show skip at that point.
-    // Ignore clicks in the first few seconds — they likely just wanted to skip
-    // the intro without knowing the exact end.
+    // Only record if they clicked past the current intro end (extending it) or
+    // if no intro end has been learned yet. Ignore clicks in the first few
+    // seconds — they likely just wanted to skip the intro without knowing the
+    // exact end.
     if (force && !fromFingerprint && currentShowId && currentTime > 5) {
-      if (!settings.perShowSettings[currentShowId]) settings.perShowSettings[currentShowId] = {};
-      settings.perShowSettings[currentShowId].introEndSeconds = Math.round(currentTime);
-      console.log('[StreamShade] Learned intro end for show', currentShowId, currentTime);
+      const perShow = settings.perShowSettings[currentShowId] || {};
+      if (!perShow.introEndSeconds || currentTime >= introEnd) {
+        if (!settings.perShowSettings[currentShowId]) settings.perShowSettings[currentShowId] = {};
+        settings.perShowSettings[currentShowId].introEndSeconds = Math.round(currentTime);
+        console.log('[StreamShade] Learned intro end for show', currentShowId, currentTime);
+      }
     }
 
     saveSettings();

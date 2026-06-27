@@ -246,6 +246,18 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: The auto-resume feature referenced `buildEpisodeHash(ep)` without defining the function, so it would silently fail to remember or restore the last watched episode.
 - **Fix**: Added the `buildEpisodeHash` helper that builds the `#S{season}-E{episode}-{idEpisode}` hash used by LookMovie episode navigation.
 
+## Bug #41 — Learned intro end was ignored and conflicted with auto-learn intro start
+- **Severity**: Medium
+- **File**: `content.js`
+- **Problem**: `skipIntro` computed the intro end with `introStart + introDuration` instead of using `getEffectiveIntroEnd()`, so the recorded `introEndSeconds` was never used to skip intros. When a user clicked past the learned intro end, the existing `autoLearnIntro` logic set `introStartSeconds` to the click time, which caused future skips to jump far past the actual content.
+- **Fix**: Updated `skipIntro` to use `getEffectiveIntroEnd()` and to extend `introEndSeconds` when the user clicks past a recorded intro end, instead of falling back to `introStartSeconds` learning. Also restricted updates so early clicks inside the learned window don't shorten the stored intro end.
+
+## Bug #42 — Untracked auto-clicker helper files left in repository
+- **Severity**: Low
+- **File**: repository root
+- **Problem**: Several leftover auto-clicker scripts (`autoclick.py`, `smart_autoclick.py`, `desktop_autoclick.py`, etc.) were untracked in the project folder, creating clutter and potential confusion after the aggressive auto-clicker systems were removed from the extension.
+- **Fix**: Removed all untracked auto-clicker helper files from the repository.
+
 ---
 
 ## Summary
@@ -254,7 +266,7 @@ All bugs identified and fixed during the review sessions.
 |----------|-------|
 | High     | 15    |
 | Medium   | 15    |
-| Low      | 11    |
-| **Total**| **41**|
+| Low      | 12    |
+| **Total**| **42**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.
