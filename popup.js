@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function saveShowIntroStart() {
     if (!state.showId) return;
     const raw = els.showIntroStartSeconds.value;
-    const value = raw === '' ? null : (parseInt(raw, 10) || null);
+    const value = raw === '' ? null : (Number.isNaN(parseInt(raw, 10)) ? null : parseInt(raw, 10));
     sendToContent({
       action: 'setPerShowSetting',
       key: 'introStartSeconds',
@@ -379,8 +379,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    els.prevEpisodeBtn.addEventListener('click', () => trigger('previousEpisode', els.prevEpisodeBtn, 'Prev!'));
-    els.nextEpisodeSmallBtn.addEventListener('click', () => trigger('nextEpisode', els.nextEpisodeSmallBtn, 'Next!'));
+    els.prevEpisodeBtn.addEventListener('click', () => trigger('previousEpisode', els.prevEpisodeBtn, '✓'));
+    els.nextEpisodeSmallBtn.addEventListener('click', () => trigger('nextEpisode', els.nextEpisodeSmallBtn, '✓'));
 
     els.clearSegmentsBtn.addEventListener('click', () => {
       sendToContent({ action: 'clearSegments' }, () => {

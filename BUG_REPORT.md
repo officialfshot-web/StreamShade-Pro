@@ -184,6 +184,18 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: The `importSettings` action only responded when `request.data` was truthy; if the user imported an empty/invalid file, the popup hung.
 - **Fix**: Added an `else` branch that sends `{ success: false, error: 'No data provided' }`.
 
+## Bug #31 — Setting intro start to `0` was saved as `null`
+- **Severity**: Low
+- **File**: `popup.js`
+- **Problem**: `saveShowIntroStart()` used `parseInt(raw, 10) || null`, which converts the valid value `0` to `null`. Users could not explicitly start the intro at the beginning of the video.
+- **Fix**: Use `Number.isNaN(parseInt(raw, 10)) ? null : parseInt(raw, 10)` so `0` is preserved.
+
+## Bug #32 — Episode navigation buttons flashed text that overflowed the button
+- **Severity**: Low
+- **File**: `popup.js`, `popup.html`
+- **Problem**: The small `←` / `→` episode nav buttons flashed "Prev!" / "Next!" on click, which overflowed their 28×28px bounds.
+- **Fix**: Changed flash text to a checkmark `✓` and removed conflicting inline padding so the CSS controls the button size.
+
 ---
 
 ## Summary
@@ -192,7 +204,7 @@ All bugs identified and fixed during the review sessions.
 |----------|-------|
 | High     | 14    |
 | Medium   | 9     |
-| Low      | 8     |
-| **Total**| **31**|
+| Low      | 10    |
+| **Total**| **33**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.
