@@ -208,6 +208,12 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: Long show names or episode titles could wrap or break the layout of the Current Show hero card.
 - **Fix**: Added `white-space: nowrap`, `overflow: hidden`, and `text-overflow: ellipsis` to `.show-title` and `.show-episode`.
 
+## Bug #35 — Popup rendered with gray boxes on Windows Chrome
+- **Severity**: Medium
+- **File**: `popup.html`
+- **Problem**: Semi-transparent `rgba(255,255,255,...)` card backgrounds and `rgba(0,0,0,0.04)` input backgrounds blended with the Windows Chrome default popup background, producing a washed-out gray look. The background gradient also had a gray-tinted bottom stop.
+- **Fix**: Switched to solid white/light-blue surfaces (`#ffffff`, `#e0f2fe`, `#f0f9ff`), made the background pure white, and changed the Current Show card to a white card with a teal accent border instead of a light blue gradient.
+
 ---
 
 ## Summary
@@ -215,8 +221,8 @@ All bugs identified and fixed during the review sessions.
 | Severity | Count |
 |----------|-------|
 | High     | 14    |
-| Medium   | 10    |
+| Medium   | 11    |
 | Low      | 11    |
-| **Total**| **35**|
+| **Total**| **36**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.
