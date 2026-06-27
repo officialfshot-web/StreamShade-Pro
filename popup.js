@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     fastStartup: document.getElementById('fastStartup'),
     autoDetectOutro: document.getElementById('autoDetectOutro'),
     autoLearnIntro: document.getElementById('autoLearnIntro'),
+    audioFingerprintIntro: document.getElementById('audioFingerprintIntro'),
+    introFingerprintStatus: document.getElementById('introFingerprintStatus'),
+    clearIntroFingerprintBtn: document.getElementById('clearIntroFingerprintBtn'),
     showIdBadge: document.getElementById('showIdBadge'),
     episodeInfoRow: document.getElementById('episodeInfoRow'),
     episodeInfoNav: document.getElementById('episodeInfoNav'),
@@ -137,6 +140,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         els.episodeInfoRow.style.display = 'none';
         els.episodeInfoNav.style.display = 'none';
       }
+
+      if (els.introFingerprintStatus) {
+        const fp = state.showSettings?.introFingerprint;
+        els.introFingerprintStatus.textContent = fp && fp.samples && fp.samples.length
+          ? `Signature saved (${fp.samples.length} samples)`
+          : 'No signature saved for this show';
+      }
     } else {
       els.showIdBadge.textContent = 'no show';
       els.showIntroStartSeconds.value = '';
@@ -148,6 +158,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       els.clearShowIntroBtn.disabled = true;
       els.episodeInfoRow.style.display = 'none';
       els.episodeInfoNav.style.display = 'none';
+      if (els.introFingerprintStatus) {
+        els.introFingerprintStatus.textContent = 'No signature saved for this show';
+      }
     }
   }
 
@@ -164,6 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     els.fastStartup.checked = s.fastStartup !== false;
     els.autoDetectOutro.checked = s.autoDetectOutro !== false;
     els.autoLearnIntro.checked = s.autoLearnIntro !== false;
+    els.audioFingerprintIntro.checked = s.audioFingerprintIntro === true;
     els.bedtimeEnabled.checked = s.bedtimeEnabled === true;
     els.bedtimeTime.value = s.bedtimeTime || '23:00';
     els.bedtimeUrl.value = s.bedtimeUrl || 'https://www.youtube.com/watch?v=HH0pojCvq44';
@@ -252,6 +266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       fastStartup: els.fastStartup.checked,
       autoDetectOutro: els.autoDetectOutro.checked,
       autoLearnIntro: els.autoLearnIntro.checked,
+      audioFingerprintIntro: els.audioFingerprintIntro.checked,
       bedtimeEnabled: els.bedtimeEnabled.checked,
       bedtimeTime: els.bedtimeTime.value || '23:00',
       bedtimeUrl: els.bedtimeUrl.value || 'https://www.youtube.com/watch?v=HH0pojCvq44',
@@ -394,9 +409,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
+    els.clearIntroFingerprintBtn.addEventListener('click', () => {
+      sendToContent({ action: 'clearIntroFingerprint' }, () => {
+        if (els.introFingerprintStatus) {
+          els.introFingerprintStatus.textContent = 'No signature saved for this show';
+        }
+        flashBtn(els.clearIntroFingerprintBtn, 'Cleared!');
+      });
+    });
+
     const debouncedSave = debounce(save, 300);
     [els.introSeconds, els.fullscreenSeconds, els.outroTime, els.bedtimeTime, els.bedtimeUrl].forEach(el => el.addEventListener('input', debouncedSave));
-    [els.skipIntro, els.autoFullscreen, els.autoSkip, els.autoCloseEnabled, els.continueWatchingEnabled, els.showNotifications, els.autoClickSkipOverlays, els.fastStartup, els.autoDetectOutro, els.autoLearnIntro, els.bedtimeEnabled].forEach(el => el.addEventListener('change', save));
+    [els.skipIntro, els.autoFullscreen, els.autoSkip, els.autoCloseEnabled, els.continueWatchingEnabled, els.showNotifications, els.autoClickSkipOverlays, els.fastStartup, els.autoDetectOutro, els.autoLearnIntro, els.audioFingerprintIntro, els.bedtimeEnabled].forEach(el => el.addEventListener('change', save));
 
     const debouncedShowIntroSave = debounce(saveShowIntro, 300);
     const debouncedShowIntroStartSave = debounce(saveShowIntroStart, 300);

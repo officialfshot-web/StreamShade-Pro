@@ -214,6 +214,12 @@ All bugs identified and fixed during the review sessions.
 - **Problem**: Semi-transparent `rgba(255,255,255,...)` card backgrounds and `rgba(0,0,0,0.04)` input backgrounds blended with the Windows Chrome default popup background, producing a washed-out gray look. The background gradient also had a gray-tinted bottom stop.
 - **Fix**: Switched to solid white/light-blue surfaces (`#ffffff`, `#e0f2fe`, `#f0f9ff`), made the background pure white, and changed the Current Show card to a white card with a teal accent border instead of a light blue gradient.
 
+## Bug #36 — Intro skip times had to be set manually for every show/episode
+- **Severity**: Medium
+- **File**: `content.js`, `popup.html`, `popup.js`
+- **Problem**: Users had to manually configure or click Skip Intro for each show/episode. There was no way to learn the intro once and apply it to future episodes automatically.
+- **Fix**: Added audio fingerprinting using the Web Audio API. When the user clicks Skip Intro, the extension captures a frequency-band signature of the intro audio and stores it per show. On future episodes, the extension compares the live audio stream to the stored signature within a 5-second window of the expected intro start and auto-skips when matched. Added a toggle in the Advanced tab and a status/clear button for the stored signature.
+
 ---
 
 ## Summary
@@ -221,8 +227,8 @@ All bugs identified and fixed during the review sessions.
 | Severity | Count |
 |----------|-------|
 | High     | 14    |
-| Medium   | 11    |
+| Medium   | 12    |
 | Low      | 11    |
-| **Total**| **36**|
+| **Total**| **37**|
 
 All bugs have been fixed and verified with `node --check` syntax validation.

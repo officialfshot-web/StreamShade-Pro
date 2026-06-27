@@ -774,6 +774,10 @@
         <div class="row-left"><div class="row-label">Fast Startup</div><div class="row-sub">Skip 10s pre-init countdown</div></div>
         <label class="tog"><input type="checkbox" id="fastStartup" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
       </div>
+      <div class="row">
+        <div class="row-left"><div class="row-label">Audio Intro Fingerprint</div><div class="row-sub">Learn intro song & auto-skip future episodes</div></div>
+        <label class="tog"><input type="checkbox" id="audioFingerprintIntro"><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
     </div>
 
     <p class="group-header">Bedtime Mode</p>
@@ -799,6 +803,17 @@
       </div>
       <div class="row">
         <button id="clearSegmentsBtn" class="ghost sm" style="width:100%;">Clear All Segments</button>
+      </div>
+    </div>
+
+    <p class="group-header">Audio Fingerprint</p>
+    <div class="group">
+      <div class="row" id="introFingerprintRow">
+        <div class="row-left">
+          <div class="row-label">Intro Signature</div>
+          <div class="row-sub" id="introFingerprintStatus">No signature saved for this show</div>
+        </div>
+        <button id="clearIntroFingerprintBtn" class="ghost sm">Clear</button>
       </div>
     </div>
 

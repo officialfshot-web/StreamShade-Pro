@@ -46,6 +46,9 @@
     // Outro
     autoDetectOutro: true,
 
+    // Audio fingerprinting for intro detection
+    audioFingerprintIntro: false,
+
     // Universal Auto-Click
     universalAutoClick: true,
     autoClickDelay: 500,
@@ -112,6 +115,18 @@
   let floatingHideTimer = null;
   let bedtimeTimer = null;
   let keyboardShortcutsInstalled = false;
+
+  // Audio fingerprinting
+  let audioContext = null;
+  let audioSource = null;
+  let audioAnalyser = null;
+  let audioCaptureInterval = null;
+  let audioFingerprintBuffer = [];
+  const FP_SAMPLE_RATE = 5; // samples per second
+  const FP_BUFFER_SECONDS = 120; // keep last 2 minutes of audio fingerprints
+  const FP_BANDS = 8; // number of frequency bands in the fingerprint
+  const FP_MATCH_THRESHOLD = 35; // distance threshold for a band match
+  const FP_MATCH_RATIO = 0.65; // min ratio of matching bands to declare a match
 
   // ===== SHARED STYLES =====
   const GLASS_PILL_CSS = `
@@ -1014,8 +1029,197 @@
     return settings.skipIntro !== false;
   }
 
+  // ===== AUDIO FINGERPRINTING FOR INTRO DETECTION =====
+  function setupAudioFingerprinting() {
+    if (!videoElement || audioContext) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioContext = new AudioContext();
+      audioSource = audioContext.createMediaElementSource(videoElement);
+      audioAnalyser = audioContext.createAnalyser();
+      audioAnalyser.fftSize = 2048;
+      audioAnalyser.smoothingTimeConstant = 0.8;
+      audioSource.connect(audioAnalyser);
+      audioAnalyser.connect(audioContext.destination);
+      audioFingerprintBuffer = [];
+      startAudioCapture();
+      console.log('[StreamShade] Audio fingerprinting ready');
+    } catch (err) {
+      console.error('[StreamShade] Audio fingerprinting setup failed:', err);
+    }
+  }
+
+  function teardownAudioFingerprinting() {
+    if (audioCaptureInterval) {
+      clearInterval(audioCaptureInterval);
+      audioCaptureInterval = null;
+    }
+    if (audioSource) {
+      try { audioSource.disconnect(); } catch (_) {}
+      audioSource = null;
+    }
+    if (audioAnalyser) {
+      try { audioAnalyser.disconnect(); } catch (_) {}
+      audioAnalyser = null;
+    }
+    if (audioContext) {
+      try { audioContext.close(); } catch (_) {}
+      audioContext = null;
+    }
+    audioFingerprintBuffer = [];
+  }
+
+  function startAudioCapture() {
+    if (!audioAnalyser || audioCaptureInterval) return;
+    const bufferLength = audioAnalyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    audioCaptureInterval = setInterval(() => {
+      if (!audioAnalyser || !videoElement) return;
+      if (videoElement.paused || audioContext?.state === 'suspended') return;
+
+      audioAnalyser.getByteFrequencyData(dataArray);
+      const fingerprint = createAudioFingerprint(dataArray);
+      audioFingerprintBuffer.push({
+        time: videoElement.currentTime,
+        fingerprint: fingerprint
+      });
+
+      const maxSize = FP_BUFFER_SECONDS * FP_SAMPLE_RATE;
+      if (audioFingerprintBuffer.length > maxSize) {
+        audioFingerprintBuffer.shift();
+      }
+
+      checkForIntroFingerprintMatch();
+    }, 1000 / FP_SAMPLE_RATE);
+  }
+
+  function stopAudioCapture() {
+    if (audioCaptureInterval) {
+      clearInterval(audioCaptureInterval);
+      audioCaptureInterval = null;
+    }
+  }
+
+  function createAudioFingerprint(dataArray) {
+    const bandSize = Math.floor(dataArray.length / FP_BANDS);
+    const fingerprint = [];
+    for (let i = 0; i < FP_BANDS; i++) {
+      let sum = 0;
+      for (let j = 0; j < bandSize; j++) {
+        sum += dataArray[i * bandSize + j];
+      }
+      fingerprint.push(Math.round(sum / bandSize));
+    }
+    return fingerprint;
+  }
+
+  function fingerprintDistance(a, b) {
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+      const diff = a[i] - b[i];
+      sum += diff * diff;
+    }
+    return Math.sqrt(sum / a.length);
+  }
+
+  function fingerprintMatch(a, b) {
+    return fingerprintDistance(a, b) < FP_MATCH_THRESHOLD;
+  }
+
+  function recordIntroFingerprint() {
+    if (!settings.audioFingerprintIntro || !currentShowId || !videoElement) return;
+    if (!audioContext || audioFingerprintBuffer.length === 0) {
+      showNotification('🎵 Audio not ready yet', 1500);
+      return;
+    }
+
+    const introStart = getEffectiveIntroStartSeconds();
+    const currentTime = videoElement.currentTime;
+    if (currentTime <= introStart + 1) return;
+
+    // Resume audio context in case it was suspended (browser autoplay policy).
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+
+    const samples = audioFingerprintBuffer
+      .filter(entry => entry.time >= introStart && entry.time <= currentTime)
+      .map(entry => entry.fingerprint);
+
+    if (samples.length < 10) return;
+
+    if (!settings.perShowSettings[currentShowId]) {
+      settings.perShowSettings[currentShowId] = {};
+    }
+    settings.perShowSettings[currentShowId].introFingerprint = {
+      startTime: introStart,
+      duration: currentTime - introStart,
+      samples: samples,
+      createdAt: Date.now()
+    };
+    saveSettings();
+    console.log('[StreamShade] Recorded intro fingerprint for show', currentShowId, samples.length, 'samples');
+    showNotification('🎵 Intro signature saved', 2000);
+  }
+
+  function checkForIntroFingerprintMatch() {
+    if (!settings.audioFingerprintIntro || !currentShowId || !videoElement) return;
+    if (state.hasSkippedIntro) return;
+
+    const showSettings = settings.perShowSettings[currentShowId];
+    if (!showSettings || !showSettings.introFingerprint) return;
+
+    const stored = showSettings.introFingerprint;
+    if (!stored.samples || stored.samples.length < 10) return;
+
+    const expectedStart = getEffectiveIntroStartSeconds();
+    const currentTime = videoElement.currentTime;
+    if (Math.abs(currentTime - expectedStart) > 5) return;
+
+    if (findFingerprintMatch(stored.samples)) {
+      console.log('[StreamShade] Intro fingerprint matched at', currentTime);
+      showNotification('🎵 Intro detected, skipping...', 2000);
+      skipIntro(true, true);
+    }
+  }
+
+  function findFingerprintMatch(storedSamples) {
+    if (audioFingerprintBuffer.length < storedSamples.length) return false;
+
+    const maxMismatches = Math.floor(storedSamples.length * (1 - FP_MATCH_RATIO));
+    // We only need to search a small window around the end of the buffer
+    // because the intro should be playing right now.
+    const searchWindow = storedSamples.length + 50;
+    const startIdx = Math.max(0, audioFingerprintBuffer.length - storedSamples.length - searchWindow);
+
+    for (let i = startIdx; i <= audioFingerprintBuffer.length - storedSamples.length; i++) {
+      let matches = 0;
+      for (let j = 0; j < storedSamples.length; j++) {
+        if (fingerprintMatch(audioFingerprintBuffer[i + j].fingerprint, storedSamples[j])) {
+          matches++;
+        } else if (j + 1 - matches > maxMismatches) {
+          break; // too many mismatches, abort early
+        }
+      }
+      if (matches / storedSamples.length >= FP_MATCH_RATIO) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function clearIntroFingerprint() {
+    if (!currentShowId) return;
+    const showSettings = settings.perShowSettings[currentShowId];
+    if (showSettings) {
+      delete showSettings.introFingerprint;
+      saveSettings();
+    }
+  }
+
   // ===== CORE FEATURES =====
-  function skipIntro(force = false) {
+  function skipIntro(force = false, fromFingerprint = false) {
     if (!videoElement) return;
 
     const introEnabled = getEffectiveSkipIntro();
@@ -1059,6 +1263,12 @@
     state.stats.introsSkipped++;
     state.stats.totalTimeSaved += Math.max(0, skipTime - currentTime);
     saveSettings();
+
+    // When the user manually skips an intro, record its audio fingerprint
+    // so future episodes can auto-detect the same intro.
+    if (force && settings.audioFingerprintIntro && !fromFingerprint) {
+      recordIntroFingerprint();
+    }
 
     showNotification(`⏭ Skipped intro (${Math.round(skipTime)}s)`, 2000);
     console.log(`[StreamShade] Intro: ${currentTime.toFixed(1)}s → ${skipTime}s`);
@@ -1524,6 +1734,10 @@
   }
 
   function onVideoPlay() {
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+
     if (!settings.autoFullscreen || state.hasGoneFullscreen) return;
 
     // Arm fullscreen relative to when playback starts/resumes.
@@ -1583,6 +1797,7 @@
     }
     state.isProcessing = false;
     state.isFullscreenProcessing = false;
+    teardownAudioFingerprinting();
   }
 
   // ===== FLOATING CONTROLS =====
@@ -1810,6 +2025,11 @@
       onVideoPlay();
     }
 
+    // Setup audio fingerprinting if enabled.
+    if (settings.audioFingerprintIntro) {
+      setupAudioFingerprinting();
+    }
+
     console.log('[StreamShade] Active | Intro:', getEffectiveIntroStartSeconds() + 's–' + getEffectiveIntroEnd() + 's | Fullscreen:', settings.fullscreenDelaySeconds + 's');
     showNotification('StreamShade ready', 2000);
   }
@@ -1974,9 +2194,19 @@
         break;
         
       case 'updateSettings':
+        const hadAudioFingerprint = settings.audioFingerprintIntro;
         Object.assign(settings, request.settings);
         saveSettings();
         startBedtimeWatcher();
+        if (request.settings && typeof request.settings.audioFingerprintIntro === 'boolean') {
+          if (request.settings.audioFingerprintIntro && !hadAudioFingerprint && videoElement) {
+            setupAudioFingerprinting();
+          } else if (!request.settings.audioFingerprintIntro && hadAudioFingerprint) {
+            stopAudioCapture();
+          } else if (request.settings.audioFingerprintIntro && hadAudioFingerprint && audioContext && videoElement) {
+            startAudioCapture();
+          }
+        }
         sendResponse({ success: true });
         break;
 
@@ -2084,6 +2314,11 @@
           settings.perShowSettings[currentShowId].customSegments = [];
         }
         saveSettings();
+        sendResponse({ success: true });
+        break;
+
+      case 'clearIntroFingerprint':
+        clearIntroFingerprint();
         sendResponse({ success: true });
         break;
         
