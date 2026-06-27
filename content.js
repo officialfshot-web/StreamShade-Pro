@@ -244,6 +244,11 @@
     };
   }
 
+  function buildEpisodeHash(ep) {
+    if (!ep || !ep.season || !ep.episode || !ep.idEpisode) return null;
+    return `S${ep.season}-E${ep.episode}-${ep.idEpisode}`;
+  }
+
   function recordLastPosition() {
     if (!settings.rememberLastPosition) return;
     const ep = getCurrentEpisodeInfo();
