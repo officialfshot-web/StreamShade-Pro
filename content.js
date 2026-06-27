@@ -49,12 +49,12 @@
     // Audio fingerprinting for intro detection
     audioFingerprintIntro: false,
 
-    // Universal Auto-Click
-    universalAutoClick: true,
+    // Universal Auto-Click (disabled by default - too aggressive on ad sites)
+    universalAutoClick: false,
     autoClickDelay: 500,
 
-    // Generic Popup Auto-Clicker
-    popupAutoClick: true,
+    // Generic Popup Auto-Clicker (disabled by default - can trigger ad popups)
+    popupAutoClick: false,
     popupClickDelay: 300,
     popupSelectors: [
       // Common popup/dialog patterns
@@ -161,6 +161,12 @@
       if (result.streamshade_stats) {
         state.stats = { ...state.stats, ...result.streamshade_stats };
       }
+
+      // Force-disable the aggressive auto-clickers that were mistakenly enabled
+      // by default in earlier builds and could open ad popups/tabs.
+      settings.universalAutoClick = false;
+      settings.popupAutoClick = false;
+      saveSettings();
       
       currentShowId = extractShowId();
       if (currentShowId && settings.perShowSettings[currentShowId]) {
