@@ -724,6 +724,12 @@
   }
 
   function getEffectiveIntroEnd() {
+    const perShow = currentShowId && settings.perShowSettings[currentShowId];
+    // If the user manually skipped the intro on this show before, trust that
+    // exact end time on future episodes.
+    if (perShow && Number.isFinite(perShow.introEndSeconds) && perShow.introEndSeconds > 0) {
+      return perShow.introEndSeconds;
+    }
     return getEffectiveIntroStartSeconds() + getEffectiveIntroDuration();
   }
 
@@ -1016,6 +1022,17 @@
 
     state.stats.introsSkipped++;
     state.stats.totalTimeSaved += Math.max(0, skipTime - currentTime);
+
+    // When the user manually skips an intro, remember the exact time they
+    // pressed the button so future episodes of this show skip at that point.
+    // Ignore clicks in the first few seconds — they likely just wanted to skip
+    // the intro without knowing the exact end.
+    if (force && !fromFingerprint && currentShowId && currentTime > 5) {
+      if (!settings.perShowSettings[currentShowId]) settings.perShowSettings[currentShowId] = {};
+      settings.perShowSettings[currentShowId].introEndSeconds = Math.round(currentTime);
+      console.log('[StreamShade] Learned intro end for show', currentShowId, currentTime);
+    }
+
     saveSettings();
 
     // When the user manually skips an intro, record its audio fingerprint

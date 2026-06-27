@@ -236,9 +236,9 @@ All bugs identified and fixed during the review sessions.
 
 ## Bug #39 — Audio fingerprint failed to record or match intros reliably
 - **Severity**: Medium
-- **File**: `content.js`
-- **Problem**: The audio fingerprint was not saved when the user clicked Skip Intro because the Web Audio API context was suspended until a user gesture, leaving the audio buffer empty. The matching also used a strict absolute threshold, so small volume differences between episodes broke matches.
-- **Fix**: Added user-gesture listeners to resume the audio context as soon as the user interacts with the page, added a retry delay when the buffer is empty, resumed the context when Skip Intro is triggered from the popup, and switched fingerprint matching to a relative 30% per-band tolerance so volume differences are handled.
+- **File**: `content.js`, `popup.js`
+- **Problem**: The audio fingerprint was not saved when the user clicked Skip Intro because the Web Audio API context was suspended until a user gesture, leaving the audio buffer empty. The matching also used a strict absolute threshold, so small volume differences between episodes broke matches. As a fallback, users needed a reliable way to learn the intro end per show.
+- **Fix**: Added user-gesture listeners to resume the audio context as soon as the user interacts with the page, added a retry delay when the buffer is empty, resumed the context when Skip Intro is triggered from the popup, and switched fingerprint matching to a relative 30% per-band tolerance. Also added a time-based fallback: when the user manually clicks Skip Intro past the first few seconds, the exact click time is stored as the intro end for that show and used on future episodes. The audio fingerprint remains enabled as a secondary signal.
 
 ---
 

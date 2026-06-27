@@ -438,6 +438,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveShowIntroStart();
       saveShowIntro();
       saveShowSpeed();
+      if (state.showId) {
+        sendToContent({ action: 'setPerShowSetting', key: 'introEndSeconds', value: null });
+      }
       flashBtn(els.clearShowIntroBtn, 'Reset!');
     });
 
